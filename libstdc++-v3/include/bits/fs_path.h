@@ -1520,17 +1520,11 @@ namespace __format
 
       template<typename _Out>
 	_Out
-	format(const filesystem::path& __p,
-	       basic_format_context<_Out, _CharT>& __fc) const
+	_M_format(const filesystem::path::string_type& __s,
+		  basic_format_context<_Out, _CharT>& __fc) const
       {
 	using _ValueT = filesystem::path::value_type;
 	using _FmtStrT = __formatter_str<_CharT>;
-
-	filesystem::path::string_type __s;
-	if (_M_spec._M_type == _Pres_g)
-	  __s = __p.generic_string<_ValueT>();
-	else
-	  __s = __p.native();
 
 	auto __spec = _M_spec;
 	// 'g' should not be passed along.
@@ -1548,11 +1542,24 @@ namespace __format
 		__s = std::move(__sink).get();
 		__spec._M_debug = 0;
 	      }
+
 	    basic_string<_CharT> __out_str;
 	    using _View = basic_string_view<_ValueT>;
 	    __out_str.assign_range(__unicode::_Utf_view<_CharT, _View>(__s));
 	    return _FmtStrT(__spec).format(__out_str, __fc);
 	  }
+      }
+
+      template<typename _Out>
+	_Out
+	format(const filesystem::path& __p,
+	       basic_format_context<_Out, _CharT>& __fc) const
+      {
+	using _ValueT = filesystem::path::value_type;
+	if (_M_spec._M_type == _Pres_g)
+	  return _M_format(__p.generic_string<_ValueT>(), __fc);
+	else
+	  return _M_format(__p.native(), __fc);
       }
 
       constexpr void
