@@ -1523,36 +1523,36 @@ namespace __format
 	format(const filesystem::path& __p,
 	       basic_format_context<_Out, _CharT>& __fc) const
       {
-	using _Value_type = filesystem::path::value_type;
+	using _ValueT = filesystem::path::value_type;
+	using _FmtStrT = __formatter_str<_CharT>;
 
-	auto __write_str = [&](const auto& __s)
-	{
-	  auto __spec = _M_spec;
-	  // 'g' should not be passed along.
-	  __spec._M_type = _Pres_none;
-	  __formatter_str<_CharT> __fmt_str(__spec);
-	  return __fmt_str.format(__s, __fc);
-	};
-
-	auto __write_transcode = [&](const auto& __s)
-	{
-	  if constexpr (is_same_v<_CharT, _Value_type>)
-	    {
-	      return __write_str(__s);
-	    }
-	  else
-	    {
-	      basic_string<_CharT> __out;
-	      using _View = basic_string_view<_Value_type>;
-	      __out.assign_range(__unicode::_Utf_view<_CharT, _View>(__s));
-	      return __write_str(__out);
-	    }
-	};
-
+	filesystem::path::string_type __s;
 	if (_M_spec._M_type == _Pres_g)
-	  return __write_transcode(__p.generic_string<_Value_type>());
+	  __s = __p.generic_string<_ValueT>();
 	else
-	  return __write_transcode(__p.native());
+	  __s = __p.native();
+
+	auto __spec = _M_spec;
+	// 'g' should not be passed along.
+	__spec._M_type = _Pres_none;
+
+	if constexpr (is_same_v<_CharT, _ValueT>)
+	  return _FmtStrT(__spec).format(__s, __fc);
+	else
+	  {
+	    if (__spec._M_debug)
+	      {
+		_Str_sink<_ValueT> __sink;
+		basic_string_view<_ValueT> __sv(__s);
+		__format::__write_escaped(__sink.out(), __sv, _Term_quote);
+		__s = std::move(__sink).get();
+		__spec._M_debug = 0;
+	      }
+	    basic_string<_CharT> __out_str;
+	    using _View = basic_string_view<_ValueT>;
+	    __out_str.assign_range(__unicode::_Utf_view<_CharT, _View>(__s));
+	    return _FmtStrT(__spec).format(__out_str, __fc);
+	  }
       }
 
       constexpr void
