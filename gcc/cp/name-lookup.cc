@@ -6512,10 +6512,10 @@ set_decl_namespace (tree decl, tree scope, bool friendp)
 
     found:
       /* Writing "N::i" to declare something directly in "N" is invalid.  */
-      if (CP_DECL_CONTEXT (decl) == current_namespace
-	  && at_namespace_scope_p ())
-	error_at (DECL_SOURCE_LOCATION (decl),
-		  "explicit qualification in declaration of %qD", decl);
+      // if (CP_DECL_CONTEXT (decl) == current_namespace
+      // 	  && at_namespace_scope_p ())
+      // 	error_at (DECL_SOURCE_LOCATION (decl),
+      // 		  "explicit qualification in declaration of %qD", decl);
       return;
     }
 
