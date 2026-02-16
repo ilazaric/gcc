@@ -797,6 +797,7 @@ namespace __format
   // Write STR to OUT (and do so efficiently if OUT is a _Sink_iter).
   template<typename _Out, typename _CharT>
     requires output_iterator<_Out, const _CharT&>
+    _GLIBCXX26_CONSTEXPR
     inline _Out
     __write(_Out __out, basic_string_view<_CharT> __str)
     {
