@@ -56,6 +56,7 @@ namespace std _GLIBCXX_VISIBILITY(default)
 {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
+  _GLIBCXX26_CONSTEXPR
   static _Rb_tree_node_base*
   local_Rb_tree_increment(_Rb_tree_node_base* __x) throw ()
   {
@@ -79,18 +80,21 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     return __x;
   }
 
+  _GLIBCXX26_CONSTEXPR
   _Rb_tree_node_base*
   _Rb_tree_increment(_Rb_tree_node_base* __x) throw ()
   {
     return local_Rb_tree_increment(__x);
   }
 
+  _GLIBCXX26_CONSTEXPR
   const _Rb_tree_node_base*
   _Rb_tree_increment(const _Rb_tree_node_base* __x) throw ()
   {
     return local_Rb_tree_increment(const_cast<_Rb_tree_node_base*>(__x));
   }
 
+  _GLIBCXX26_CONSTEXPR
   static _Rb_tree_node_base*
   local_Rb_tree_decrement(_Rb_tree_node_base* __x) throw ()
   {
@@ -117,18 +121,21 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     return __x;
   }
 
+  _GLIBCXX26_CONSTEXPR
   _Rb_tree_node_base*
   _Rb_tree_decrement(_Rb_tree_node_base* __x) throw ()
   {
     return local_Rb_tree_decrement(__x);
   }
 
+  _GLIBCXX26_CONSTEXPR
   const _Rb_tree_node_base*
   _Rb_tree_decrement(const _Rb_tree_node_base* __x) throw ()
   {
     return local_Rb_tree_decrement(const_cast<_Rb_tree_node_base*>(__x));
   }
 
+  _GLIBCXX26_CONSTEXPR
   static void
   local_Rb_tree_rotate_left(_Rb_tree_node_base* const __x,
 		             _Rb_tree_node_base*& __root)
@@ -154,12 +161,14 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   /* Static keyword was missing on _Rb_tree_rotate_left.
      Export the symbol for backward compatibility until
      next ABI change.  */
+  _GLIBCXX26_CONSTEXPR
   void
   _Rb_tree_rotate_left(_Rb_tree_node_base* const __x,
 		       _Rb_tree_node_base*& __root)
   { local_Rb_tree_rotate_left (__x, __root); }
 #endif
 
+  _GLIBCXX26_CONSTEXPR
   static void
   local_Rb_tree_rotate_right(_Rb_tree_node_base* const __x,
 			     _Rb_tree_node_base*& __root)
@@ -185,12 +194,14 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   /* Static keyword was missing on _Rb_tree_rotate_right
      Export the symbol for backward compatibility until
      next ABI change.  */
+  _GLIBCXX26_CONSTEXPR
   void
   _Rb_tree_rotate_right(_Rb_tree_node_base* const __x,
 			_Rb_tree_node_base*& __root)
   { local_Rb_tree_rotate_right (__x, __root); }
 #endif
 
+  _GLIBCXX26_CONSTEXPR
   void
   _Rb_tree_insert_and_rebalance(const bool          __insert_left,
                                 _Rb_tree_node_base* __x,
@@ -282,6 +293,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     __root->_M_color = _S_black;
   }
 
+  _GLIBCXX26_CONSTEXPR
   _Rb_tree_node_base*
   _Rb_tree_rebalance_for_erase(_Rb_tree_node_base* const __z,
 			       _Rb_tree_node_base& __header) throw ()
@@ -443,6 +455,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     return __y;
   }
 
+  _GLIBCXX26_CONSTEXPR
   unsigned int
   _Rb_tree_black_count(const _Rb_tree_node_base* __node,
                        const _Rb_tree_node_base* __root) throw ()

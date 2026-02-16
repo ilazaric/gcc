@@ -520,6 +520,7 @@ namespace __rb_tree
     };
 
   __attribute__((__nonnull__))
+  _GLIBCXX26_CONSTEXPR
   void
   _Rb_tree_insert_and_rebalance(const bool __insert_left,
 				_Rb_tree_node_base* __x,
@@ -1017,7 +1018,7 @@ namespace __rb_tree
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
 	   typename _Compare, typename _Alloc = allocator<_Val> >
-    class _Rb_tree
+    struct _Rb_tree
     {
       typedef typename __gnu_cxx::__alloc_traits<_Alloc>::template
 	rebind<_Val>::other _Val_alloc_type;
@@ -2490,6 +2491,7 @@ namespace __rb_tree
 #else
     template<typename _NodeGen>
 #endif
+      _GLIBCXX26_CONSTEXPR
       typename _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::iterator
       _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
       _M_insert_(_Base_ptr __x, _Base_ptr __p,
@@ -2605,6 +2607,7 @@ namespace __rb_tree
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
 	   typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     void
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
     _M_erase(_Node_ptr __x)
@@ -2621,6 +2624,7 @@ namespace __rb_tree
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
 	   typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     typename _Rb_tree<_Key, _Val, _KeyOfValue,
 		      _Compare, _Alloc>::_Base_ptr
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
@@ -2780,6 +2784,7 @@ namespace __rb_tree
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
 	   typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     pair<typename _Rb_tree<_Key, _Val, _KeyOfValue,
 			   _Compare, _Alloc>::_Base_ptr,
 	 typename _Rb_tree<_Key, _Val, _KeyOfValue,
@@ -2835,6 +2840,7 @@ namespace __rb_tree
 #if __cplusplus >= 201103L
     template<typename _Arg>
 #endif
+    _GLIBCXX26_CONSTEXPR
     pair<typename _Rb_tree<_Key, _Val, _KeyOfValue,
 			   _Compare, _Alloc>::iterator, bool>
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
@@ -2881,6 +2887,7 @@ namespace __rb_tree
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
 	   typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     pair<typename _Rb_tree<_Key, _Val, _KeyOfValue,
 			   _Compare, _Alloc>::_Base_ptr,
 	 typename _Rb_tree<_Key, _Val, _KeyOfValue,
@@ -2943,6 +2950,7 @@ namespace __rb_tree
 #else
     template<typename _NodeGen>
 #endif
+      _GLIBCXX26_CONSTEXPR
       typename _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::iterator
       _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
       _M_insert_unique_(const_iterator __position,
@@ -3160,6 +3168,7 @@ namespace __rb_tree
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
 	   typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     void
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
     _M_erase_aux(const_iterator __position)
@@ -3210,6 +3219,7 @@ namespace __rb_tree
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
 	   typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     typename _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::size_type
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
     _M_erase_unique(const _Key& __x)
@@ -3224,6 +3234,7 @@ namespace __rb_tree
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
 	   typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     typename _Rb_tree<_Key, _Val, _KeyOfValue,
 		      _Compare, _Alloc>::iterator
     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
@@ -3260,6 +3271,13 @@ namespace __rb_tree
   _GLIBCXX_PURE unsigned int
   _Rb_tree_black_count(const _Rb_tree_node_base* __node,
 		       const _Rb_tree_node_base* __root) throw ();
+
+_GLIBCXX_END_NAMESPACE_VERSION
+} // namespace
+#include "/home/ilazaric/repos/ALL/submodules/gcc/libstdc++-v3/src/c++98/tree.cc"
+namespace std _GLIBCXX_VISIBILITY(default)
+{
+_GLIBCXX_BEGIN_NAMESPACE_VERSION
 
   template<typename _Key, typename _Val, typename _KeyOfValue,
 	   typename _Compare, typename _Alloc>
