@@ -1476,6 +1476,16 @@
 #endif /* !defined(__cpp_lib_format) */
 #undef __glibcxx_want_format
 
+#if !defined(__cpp_lib_constexpr_format)
+# if (__cplusplus >  202302L) && _GLIBCXX_HOSTED
+#  define __glibcxx_constexpr_format 202511L
+#  if defined(__glibcxx_want_all) || defined(__glibcxx_want_constexpr_format)
+#   define __cpp_lib_constexpr_format 202511L
+#  endif
+# endif
+#endif /* !defined(__cpp_lib_constexpr_format) */
+#undef __glibcxx_want_constexpr_format
+
 #if !defined(__cpp_lib_format_uchar)
 # if (__cplusplus >= 202002L) && _GLIBCXX_HOSTED
 #  define __glibcxx_format_uchar 202311L

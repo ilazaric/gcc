@@ -4545,6 +4545,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CXX11
   // DR 1261. Insufficent overloads for to_string / to_wstring
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline string
   to_string(int __val)
 #if _GLIBCXX_USE_CXX11_ABI && (__CHAR_BIT__ * __SIZEOF_INT__) <= 32
@@ -4564,6 +4565,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CXX11
   }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline string
   to_string(unsigned __val)
 #if _GLIBCXX_USE_CXX11_ABI && (__CHAR_BIT__ * __SIZEOF_INT__) <= 32
@@ -4580,6 +4582,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CXX11
   }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline string
   to_string(long __val)
 #if _GLIBCXX_USE_CXX11_ABI && (__CHAR_BIT__ * __SIZEOF_LONG__) <= 32
@@ -4599,6 +4602,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CXX11
   }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline string
   to_string(unsigned long __val)
 #if _GLIBCXX_USE_CXX11_ABI && (__CHAR_BIT__ * __SIZEOF_LONG__) <= 32
@@ -4615,6 +4619,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CXX11
   }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline string
   to_string(long long __val)
   {
@@ -4632,6 +4637,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CXX11
   }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline string
   to_string(unsigned long long __val)
   {
@@ -4856,31 +4862,37 @@ _GLIBCXX_BEGIN_NAMESPACE_CXX11
 #pragma GCC diagnostic pop
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline wstring
   to_wstring(int __val)
   { return std::__to_wstring_numeric(std::to_string(__val)); }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline wstring
   to_wstring(unsigned __val)
   { return std::__to_wstring_numeric(std::to_string(__val)); }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline wstring
   to_wstring(long __val)
   { return std::__to_wstring_numeric(std::to_string(__val)); }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline wstring
   to_wstring(unsigned long __val)
   { return std::__to_wstring_numeric(std::to_string(__val)); }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline wstring
   to_wstring(long long __val)
   { return std::__to_wstring_numeric(std::to_string(__val)); }
 
   _GLIBCXX_NODISCARD
+  _GLIBCXX26_CONSTEXPR
   inline wstring
   to_wstring(unsigned long long __val)
   { return std::__to_wstring_numeric(std::to_string(__val)); }
