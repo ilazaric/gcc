@@ -1,10 +1,16 @@
 // { dg-do run { target c++20 } }
 
+#if __cplusplus >= 202400L
+# define constexpr26 constexpr
+#else
+# define constexpr26
+#endif
+
 #include <format>
 #include <string>
 #include <testsuite_hooks.h>
 
-void
+constexpr26 void
 test()
 {
   auto n = std::formatted_size("");
@@ -44,8 +50,20 @@ test_wchar()
   VERIFY( n == 5 );
 }
 
-int main()
+constexpr26 bool
+test_all()
 {
   test();
-  test_wchar();
+  if (!std::is_constant_evaluated())
+    test_wchar();
+  return true;
+}
+
+#if __cplusplus >= 202400L
+static_assert(test_all());
+#endif
+
+int main()
+{
+  test_all();
 }

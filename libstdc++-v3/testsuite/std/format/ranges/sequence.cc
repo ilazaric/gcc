@@ -1,6 +1,12 @@
 // { dg-do run { target c++23 } }
-// { dg-options "-fexec-charset=UTF-8" }
+// { dg-options "-fexec-charset=UTF-8 -fconstexpr-ops-limit=5000000000" }
 // { dg-timeout-factor 2 }
+
+#if __cplusplus >= 202400L
+# define constexpr26 constexpr
+#else
+# define constexpr26
+#endif
 
 #include <array>
 #include <format>
@@ -19,7 +25,7 @@ static_assert(!std::formattable<std::vector<NotFormattable>, char>);
 static_assert(!std::formattable<std::span<NotFormattable>, wchar_t>);
 
 template<typename... Args>
-bool
+constexpr26 bool
 is_format_string_for(const char* str, Args&&... args)
 {
   try {
@@ -31,7 +37,7 @@ is_format_string_for(const char* str, Args&&... args)
 }
 
 template<typename... Args>
-bool
+constexpr26 bool
 is_format_string_for(const wchar_t* str, Args&&... args)
 {
   try {
@@ -43,7 +49,8 @@ is_format_string_for(const wchar_t* str, Args&&... args)
 }
 
 template<typename Rg, typename CharT>
-bool is_range_formatter_spec_for(CharT const* spec, Rg&& rg)
+constexpr26 bool
+is_range_formatter_spec_for(CharT const* spec, Rg&& rg)
 {
   using V = std::remove_cvref_t<std::ranges::range_reference_t<Rg>>;
   std::range_formatter<V, CharT> fmt;
@@ -56,6 +63,7 @@ bool is_range_formatter_spec_for(CharT const* spec, Rg&& rg)
   }
 }
 
+// not constexpr because of PR124145
 void
 test_format_string()
 {
@@ -79,7 +87,8 @@ test_format_string()
 #define WIDEN(S) WIDEN_(CharT, S)
 
 template<typename CharT, typename Range, typename Storage>
-void test_output()
+constexpr26 void
+test_output()
 {
   using Sv = std::basic_string_view<CharT>;
   using T = std::ranges::range_value_t<Range>;
@@ -153,25 +162,32 @@ void test_output()
 }
 
 template<typename Cont>
-void test_output_cont()
+constexpr26 void
+test_output_cont()
 {
   test_output<char, Cont&, Cont>();
-  test_output<wchar_t, Cont const&, Cont>();
+  if (!std::is_constant_evaluated())
+    test_output<wchar_t, Cont const&, Cont>();
 }
 
 template<typename View>
-void test_output_view()
+constexpr26 void
+test_output_view()
 {
   test_output<char, View, int[3]>();
-  test_output<wchar_t, View, int[3]>();
+  if (!std::is_constant_evaluated())
+    test_output<wchar_t, View, int[3]>();
 }
 
-void
+constexpr26 void
 test_outputs()
 {
   using namespace __gnu_test;
   test_output_cont<std::vector<int>>();
-  test_output_cont<std::list<int>>();
+
+  if (!std::is_constant_evaluated())
+    test_output_cont<std::list<int>>();
+
   test_output_cont<std::array<int, 3>>();
 
   test_output_view<std::span<int>>();
@@ -185,7 +201,7 @@ test_outputs()
   test_output_view<test_forward_range<const int>>();
 }
 
-void
+constexpr26 void
 test_nested()
 {
   std::vector<std::vector<int>> v
@@ -201,7 +217,8 @@ test_nested()
   VERIFY( res == "+[01, 02, 11, 12]+" );
 }
 
-bool strip_quote(std::string_view& v)
+constexpr26 bool
+strip_quote(std::string_view& v)
 {
   if (!v.starts_with('"'))
     return false;
@@ -209,7 +226,8 @@ bool strip_quote(std::string_view& v)
   return true;
 }
 
-bool strip_prefix(std::string_view& v, std::string_view expected, bool quoted = false)
+constexpr26 bool
+strip_prefix(std::string_view& v, std::string_view expected, bool quoted = false)
 {
   if (quoted && !strip_quote(v))
     return false;
@@ -221,7 +239,8 @@ bool strip_prefix(std::string_view& v, std::string_view expected, bool quoted = 
   return true;
 }
 
-bool strip_squares(std::string_view& v)
+constexpr26 bool
+strip_squares(std::string_view& v)
 {
   if (!v.starts_with('[') || !v.ends_with(']'))
     return false;
@@ -230,7 +249,8 @@ bool strip_squares(std::string_view& v)
   return true;
 }
 
-bool strip_prefix(std::string_view& v, size_t n, char c)
+constexpr26 bool
+strip_prefix(std::string_view& v, size_t n, char c)
 {
   size_t pos = v.find_first_not_of(c);
   if (pos == std::string_view::npos)
@@ -241,7 +261,8 @@ bool strip_prefix(std::string_view& v, size_t n, char c)
   return true;
 }
 
-void test_padding()
+constexpr26 void
+test_padding()
 {
   std::string res;
   std::string_view resv;
@@ -323,10 +344,24 @@ void test_padding()
   VERIFY( check_elems(resv, false) );
 }
 
-int main()
+constexpr26 bool
+test_all()
 {
-  test_format_string();
   test_outputs();
   test_nested();
   test_padding();
+
+  if (!std::is_constant_evaluated())
+    test_format_string();
+  
+  return true;
+}
+
+#if __cplusplus >= 202400L
+static_assert(test_all());
+#endif
+
+int main()
+{
+  test_all();
 }

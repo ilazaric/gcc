@@ -1,5 +1,11 @@
 // { dg-do run { target c++23 } }
 
+#if __cplusplus >= 202400L
+# define constexpr26 constexpr
+#else
+# define constexpr26
+#endif
+
 #include <flat_map>
 #include <format>
 #include <testsuite_hooks.h>
@@ -32,7 +38,7 @@ struct std::formatter<MyVector<T, Formatter>, CharT>
   { return _formatter.parse(pc);  }
 
   template<typename Out>
-  typename std::basic_format_context<Out, CharT>::iterator
+  constexpr26 std::basic_format_context<Out, CharT>::iterator
   format(const MyVector<T, Formatter>& mv,
 	 std::basic_format_context<Out, CharT>& fc) const
   { return _formatter.format(mv, fc); }
@@ -42,7 +48,7 @@ private:
 };
 
 template<typename CharT, template<typename, typename> class Formatter>
-void
+constexpr26 void
 test_default()
 {
   MyVector<int, Formatter> vec{1, 2, 3};
@@ -94,7 +100,7 @@ test_default()
 }
 
 template<typename CharT, template<typename, typename> class Formatter>
-void
+constexpr26 void
 test_override()
 {
   MyVector<CharT, Formatter> vc{'a', 'b', 'c', 'd'};
@@ -115,15 +121,20 @@ test_override()
 }
 
 template<template<typename, typename> class Formatter>
-void test_outputs()
+constexpr26 void
+test_outputs()
 {
   test_default<char, Formatter>();
-  test_default<wchar_t, Formatter>();
   test_override<char, Formatter>();
-  test_override<wchar_t, Formatter>();
+  // constexpr wide formatting not yet implemented
+  if (!std::is_constant_evaluated())
+    {
+      test_default<wchar_t, Formatter>();
+      test_override<wchar_t, Formatter>();
+    }
 }
 
-void
+constexpr26 void
 test_nested()
 {
   MyVector<MyVector<int>> v
@@ -152,7 +163,8 @@ struct std::formatter<MyFlatMap, CharT>
   : std::range_formatter<MyFlatMap::reference>
 {};
 
-void test_const_ref_type_mismatch()
+constexpr26 void
+test_const_ref_type_mismatch()
 {
   MyFlatMap m{{1, 11}, {2, 22}};
   std::string res = std::format("{:m}", m);
@@ -163,13 +175,15 @@ template<typename T, typename CharT>
 using VectorFormatter = std::formatter<std::vector<T>, CharT>;
 
 template<template<typename> typename Range>
-void test_nonblocking()
+constexpr26 void
+test_nonblocking()
 {
   static_assert(!std::enable_nonlocking_formatter_optimization<
 		  Range<int>>);
 }
 
-int main()
+constexpr26 bool
+test_all()
 {
   test_outputs<std::range_formatter>();
   test_outputs<VectorFormatter>();
@@ -179,4 +193,15 @@ int main()
   test_nonblocking<std::span>();
   test_nonblocking<std::vector>();
   test_nonblocking<MyVector>();
+
+  return true;
+}
+
+#if __cplusplus >= 202400L
+static_assert(test_all());
+#endif
+
+int main()
+{
+  test_all();
 }

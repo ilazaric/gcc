@@ -1,5 +1,11 @@
 // { dg-do run { target c++20 } }
 
+#if __cplusplus >= 202400L
+# define constexpr26 constexpr
+#else
+# define constexpr26
+#endif
+
 #include <format>
 #include <locale>
 #include <vector>
@@ -11,17 +17,20 @@ struct punct : std::numpunct<char>
   std::string do_grouping() const override { return "\2"; }
 };
 
-void
+constexpr26 void
 test()
 {
   char buf[32] = { };
   auto out = std::format_to(buf, "test");
   VERIFY( out == buf+4 );
 
-  std::locale loc({}, new punct);
-  auto out2 = std::format_to(buf, loc, "{:Ld}", 12345);
-  VERIFY( out2 == buf+7 );
-  VERIFY( std::string_view(buf, out2 - buf) == "1,23,45" );
+  if (!std::is_constant_evaluated())
+    {
+      std::locale loc({}, new punct);
+      auto out2 = std::format_to(buf, loc, "{:Ld}", 12345);
+      VERIFY( out2 == buf+7 );
+      VERIFY( std::string_view(buf, out2 - buf) == "1,23,45" );
+    }
 }
 
 struct wpunct : std::numpunct<wchar_t>
@@ -29,6 +38,7 @@ struct wpunct : std::numpunct<wchar_t>
   std::string do_grouping() const override { return "\2"; }
 };
 
+// constexpr wide formatting not yet implemented
 void
 test_wchar()
 {
@@ -50,20 +60,20 @@ struct move_only_iterator
   using difference_type = iterator::difference_type;
   using iterator_category = std::output_iterator_tag;
 
-  move_only_iterator(iterator b) : base_(b) { }
+  constexpr move_only_iterator(iterator b) : base_(b) { }
   move_only_iterator(move_only_iterator&&) = default;
   move_only_iterator& operator=(move_only_iterator&&) = default;
 
-  move_only_iterator& operator++() { ++base_; return *this; }
-  move_only_iterator operator++(int) { auto tmp = *this; ++base_; return tmp; }
+  constexpr move_only_iterator& operator++() { ++base_; return *this; }
+  constexpr move_only_iterator operator++(int) { auto tmp = *this; ++base_; return tmp; }
 
-  decltype(auto) operator*() { return *base_; }
+  constexpr decltype(auto) operator*() { return *base_; }
 
 private:
   iterator base_;
 };
 
-void
+constexpr26 void
 test_move_only()
 {
   std::string str;
@@ -72,14 +82,17 @@ test_move_only()
     = std::format_to(std::move(mo), "for{:.3} that{:c}", "matte", (int)'!');
   VERIFY( str == "format that!" );
 
-  std::vector<wchar_t> vec;
-  move_only_iterator wmo(std::back_inserter(vec));
-  [[maybe_unused]] auto wres
-    = std::format_to(std::move(wmo), L"for{:.3} hat{:c}", L"matte", (long)L'!');
-  VERIFY( std::wstring_view(vec.data(), vec.size()) == L"format hat!" );
+  if (!std::is_constant_evaluated())
+    {
+      std::vector<wchar_t> vec;
+      move_only_iterator wmo(std::back_inserter(vec));
+      [[maybe_unused]] auto wres
+			 = std::format_to(std::move(wmo), L"for{:.3} hat{:c}", L"matte", (long)L'!');
+      VERIFY( std::wstring_view(vec.data(), vec.size()) == L"format hat!" );
+    }
 }
 
-void
+constexpr26 void
 test_pr110917()
 {
   // PR libstdc++/110917
@@ -90,10 +103,24 @@ test_pr110917()
   VERIFY( ! std::memcmp(buf, "abc 123", 7) );
 }
 
-int main()
+constexpr26 bool
+test_all()
 {
   test();
-  test_wchar();
   test_move_only();
   test_pr110917();
+  
+  if (!std::is_constant_evaluated())
+    test_wchar();
+
+  return true;
+}
+
+#if __cplusplus >= 202400L
+static_assert(test_all());
+#endif
+
+int main()
+{
+  test_all();
 }

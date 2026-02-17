@@ -1,5 +1,11 @@
 // { dg-do run { target c++23 } }
 
+#if __cplusplus >= 202400L
+# define constexpr26 constexpr
+#else
+# define constexpr26
+#endif
+
 #include <deque>
 #include <flat_map>
 #include <flat_set>
@@ -64,7 +70,8 @@ struct CustFormat : std::vector<T>
 template<typename T, std::range_format rf>
 constexpr auto std::format_kind<CustFormat<T, rf>> = rf;
 
-void test_override()
+constexpr26 bool
+test_override()
 {
   CustFormat<int, std::range_format::disabled> disabledf;
   static_assert( !std::formattable<decltype(disabledf), char> );
@@ -88,7 +95,13 @@ void test_override()
   VERIFY( std::format("{}", debugf) == R"("abcd")" );
   // Support precision as string do
   VERIFY( std::format("{:.3}", debugf) == R"("ab)" );
+
+  return true;
 }
+
+#if __cplusplus >= 202400L
+static_assert(test_override());
+#endif
 
 int main()
 {

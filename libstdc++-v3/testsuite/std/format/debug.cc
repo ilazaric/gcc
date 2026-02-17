@@ -1,14 +1,20 @@
-// { dg-options "-fexec-charset=UTF-8 -fwide-exec-charset=UTF-32LE -DUNICODE_ENC" { target le } }
-// { dg-options "-fexec-charset=UTF-8 -fwide-exec-charset=UTF-32BE -DUNICODE_ENC" { target be } }
+// { dg-options "-fexec-charset=UTF-8 -fwide-exec-charset=UTF-32LE -DUNICODE_ENC -fconstexpr-ops-limit=500000000" { target le } }
+// { dg-options "-fexec-charset=UTF-8 -fwide-exec-charset=UTF-32BE -DUNICODE_ENC -fconstexpr-ops-limit=500000000" { target be } }
 // { dg-do run { target c++23 } }
 // { dg-require-effective-target 4byte_wchar_t }
 // { dg-add-options no_pch }
 // { dg-timeout-factor 2 }
 
+#if __cplusplus >= 202400L
+# define constexpr26 constexpr
+#else
+# define constexpr26
+#endif
+
 #include <format>
 #include <testsuite_hooks.h>
 
-std::string
+constexpr26 std::string
 fdebug(char t)
 { return std::format("{:?}", t); }
 
@@ -16,7 +22,7 @@ std::wstring
 fdebug(wchar_t t)
 { return std::format(L"{:?}", t); }
 
-std::string
+constexpr26 std::string
 fdebug(std::string_view t)
 { return std::format("{:?}", t); }
 
@@ -29,7 +35,7 @@ fdebug(std::wstring_view t)
 #define WIDEN(S) WIDEN_(CharT, S)
 
 template<typename CharT>
-void
+constexpr26 void
 test_basic_escapes()
 {
   std::basic_string<CharT> res;
@@ -72,7 +78,7 @@ test_basic_escapes()
 }
 
 template<typename CharT>
-void
+constexpr26 void
 test_ascii_escapes()
 {
   std::basic_string<CharT> res;
@@ -89,7 +95,7 @@ test_ascii_escapes()
 }
 
 template<typename CharT>
-void
+constexpr26 void
 test_extended_ascii()
 {
   std::basic_string<CharT> res;
@@ -117,7 +123,7 @@ test_extended_ascii()
 }
 
 template<typename CharT>
-void
+constexpr26 void
 test_unicode_escapes()
 {
 #if UNICODE_ENC
@@ -166,7 +172,7 @@ test_unicode_escapes()
 }
 
 template<typename CharT>
-void
+constexpr26 void
 test_grapheme_extend()
 {
 #if UNICODE_ENC
@@ -192,7 +198,7 @@ test_grapheme_extend()
 }
 
 template<typename CharT>
-void
+constexpr26 void
 test_replacement_char()
 {
 #if UNICODE_ENC
@@ -206,7 +212,7 @@ test_replacement_char()
 #endif // UNICODE_ENC
 }
 
-void
+constexpr26 void
 test_ill_formed_utf8_seq()
 {
 #if UNICODE_ENC
@@ -269,7 +275,7 @@ test_ill_formed_utf32()
 }
 
 template<typename CharT>
-void
+constexpr26 void
 test_fill()
 {
   std::basic_string<CharT> res;
@@ -315,7 +321,7 @@ test_fill()
 }
 
 template<typename CharT>
-void
+constexpr26 void
 test_prec()
 {
   std::basic_string<CharT> res;
@@ -341,7 +347,8 @@ test_prec()
 #endif // UNICODE_ENC
 }
 
-bool strip_quote(std::string_view& v)
+constexpr26 bool
+strip_quote(std::string_view& v)
 {
   if (!v.starts_with('"'))
     return false;
@@ -349,7 +356,8 @@ bool strip_quote(std::string_view& v)
   return true;
 }
 
-bool strip_quotes(std::string_view& v)
+constexpr26 bool
+strip_quotes(std::string_view& v)
 {
   if (!v.starts_with('"') || !v.ends_with('"'))
     return false;
@@ -358,7 +366,8 @@ bool strip_quotes(std::string_view& v)
   return true;
 }
 
-bool strip_prefix(std::string_view& v, size_t n, char c)
+constexpr26 bool
+strip_prefix(std::string_view& v, size_t n, char c)
 {
   size_t pos = v.find_first_not_of(c);
   if (pos == std::string_view::npos)
@@ -369,7 +378,8 @@ bool strip_prefix(std::string_view& v, size_t n, char c)
   return true;
 }
 
-void test_padding()
+constexpr26 void
+test_padding()
 {
   std::string res;
   std::string_view resv;
@@ -751,8 +761,9 @@ struct std::formatter<DebugWrapper<T>, CharT>
   }
 
   template<typename Out>
-  Out format(DebugWrapper<T> const& t,
-	     std::basic_format_context<Out, CharT>& fc) const
+  constexpr26 Out
+  format(DebugWrapper<T> const& t,
+	 std::basic_format_context<Out, CharT>& fc) const
   { return under.format(t.val, fc); }
 
 private:
@@ -760,7 +771,7 @@ private:
 };
 
 template<typename CharT, typename StrT>
-void
+constexpr26 void
 test_formatter_str()
 {
   CharT buf[]{ 'a', 'b', 'c', 0 };
@@ -770,7 +781,7 @@ test_formatter_str()
 }
 
 template<typename CharT>
-void
+constexpr26 void
 test_formatter_arr()
 {
   std::basic_string<CharT> res;
@@ -786,7 +797,7 @@ test_formatter_arr()
 }
 
 template<typename CharT, typename SrcT>
-void
+constexpr26 void
 test_formatter_char()
 {
   DebugWrapper<SrcT> in{ 'a' };
@@ -795,7 +806,7 @@ test_formatter_char()
 }
 
 template<typename CharT>
-void
+constexpr26 void
 test_formatters()
 {
   test_formatter_char<CharT, CharT>();
@@ -806,38 +817,60 @@ test_formatters()
   test_formatter_arr<CharT>();
 }
 
-void
+constexpr26 void
 test_formatters_c()
 {
   test_formatters<char>();
-  test_formatters<wchar_t>();
-  test_formatter_char<wchar_t, char>();
+  if (!std::is_constant_evaluated())
+    {
+      test_formatters<wchar_t>();
+      test_formatter_char<wchar_t, char>();
+    }
 }
 
-int main()
+constexpr26 bool
+test_all()
 {
   test_basic_escapes<char>();
-  test_basic_escapes<wchar_t>();
   test_ascii_escapes<char>();
-  test_ascii_escapes<wchar_t>();
   test_extended_ascii<char>();
-  test_extended_ascii<wchar_t>();
 
   test_unicode_escapes<char>();
-  test_unicode_escapes<wchar_t>();
   test_grapheme_extend<char>();
-  test_grapheme_extend<wchar_t>();
   test_replacement_char<char>();
-  test_replacement_char<wchar_t>();
   test_ill_formed_utf8_seq();
-  test_ill_formed_utf32();
 
   test_fill<char>();
-  test_fill<wchar_t>();
   test_prec<char>();
-  test_prec<wchar_t>();
+
+  // constexpr wide formatting not yet implemented
+  if (!std::is_constant_evaluated())
+    {
+      test_basic_escapes<wchar_t>();
+      test_ascii_escapes<wchar_t>();
+      test_extended_ascii<wchar_t>();
+
+      test_unicode_escapes<wchar_t>();
+      test_grapheme_extend<wchar_t>();
+      test_replacement_char<wchar_t>();
+      test_ill_formed_utf32();
+
+      test_fill<wchar_t>();
+      test_prec<wchar_t>();
+    }
 
   test_padding();
 
   test_formatters_c();
+
+  return true;
+}
+
+#if __cplusplus >= 202400L
+static_assert(test_all());
+#endif
+
+int main()
+{
+  test_all();
 }

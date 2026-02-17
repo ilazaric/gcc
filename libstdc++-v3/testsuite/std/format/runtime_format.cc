@@ -3,7 +3,7 @@
 #include <format>
 #include <testsuite_hooks.h>
 
-void
+constexpr void
 test_char()
 {
   std::string fmt = "{}";
@@ -19,7 +19,7 @@ test_wchar()
   VERIFY( s == L"0710" );
 }
 
-void
+constexpr void
 test_internal_api()
 {
   // Using _Runtime_format_string directly works even in C++20 mode.
@@ -40,9 +40,19 @@ static_assert( !std::is_constructible_v<std::format_string<>,
 static_assert( !std::is_constructible_v<std::wformat_string<>,
 					decltype(std::runtime_format(L""))&&> );
 
-int main()
+constexpr bool
+test_all()
 {
   test_char();
-  test_wchar();
+  if (!std::is_constant_evaluated())
+    test_wchar();
   test_internal_api();
+  return true;
+}
+
+static_assert(test_all());
+
+int main()
+{
+  test_all();
 }
