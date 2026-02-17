@@ -5934,14 +5934,17 @@ namespace __format
 
          struct _Restore_out
          {
+	   _GLIBCXX26_CONSTEXPR
 	   _Restore_out(basic_format_context<_Sink_iter<_CharT>, _CharT>& __fc)
 	   : _M_ctx(std::addressof(__fc)), _M_out(__fc.out())
 	  { }
 
+	   _GLIBCXX26_CONSTEXPR
 	  void
 	  _M_disarm()
 	  { _M_ctx = nullptr; }
 
+	   _GLIBCXX26_CONSTEXPR
 	  ~_Restore_out()
 	  {
 	    if (_M_ctx)
@@ -6111,6 +6114,7 @@ namespace __format
 	  }
 
 	  template<typename _Out>
+	    _GLIBCXX26_CONSTEXPR
 	    void
 	    _M_format(__maybe_const<_Tps, _CharT>&... __elems,
 		      basic_format_context<_Out, _CharT>& __fc,
