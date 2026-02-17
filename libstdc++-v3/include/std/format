@@ -4574,6 +4574,7 @@ namespace __format
 	}
 
       template<typename _Ctx, typename... _Argz>
+        _GLIBCXX26_CONSTEXPR
 	friend auto
 	make_format_args(_Argz&...) noexcept;
 
