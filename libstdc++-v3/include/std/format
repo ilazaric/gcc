@@ -4427,6 +4427,9 @@ namespace __format
 	void
 	_M_set(_Tp __v) noexcept
 	{
+	  if constexpr (is_same_v<_Tp, basic_string_view<_CharT>>)
+	    construct_at(&_M_sv, __v);
+	  else
 	  _S_get_set<_Tp>(*this, __v);
 	}
       };
@@ -4668,6 +4671,8 @@ namespace __format
 	  else if constexpr (is_same_v<remove_const_t<_Tp>, char>
 			       && is_same_v<_CharT, wchar_t>)
 	    _M_set(static_cast<_Td>(static_cast<unsigned char>(__v)));
+	  else if constexpr (is_same_v<_Td, handle>)
+	    _M_set(handle::_S_create(__v));
 	  else
 	    _M_set(static_cast<_Td>(__v));
 	}
@@ -4784,7 +4789,7 @@ namespace __format
 	       return std::forward<_Visitor>(__vis)(__val);
 	     else
 	       {
-		 handle __h(__val);
+		 handle __h(handle::_S_create(__val));
 		 return std::forward<_Visitor>(__vis)(__h);
 	       }
 	   }, __type);
