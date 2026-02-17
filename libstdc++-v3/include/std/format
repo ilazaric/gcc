@@ -4117,7 +4117,8 @@ namespace __format
       struct _HandleBase
       {
 	const void* _M_ptr;
-	void (*_M_func)();
+	void (*_M_func)(basic_format_parse_context<_CharT>&,
+			_Context&, const void*);
       };
 
       union
@@ -4284,11 +4285,6 @@ namespace __format
 	static constexpr bool __formattable
 	  = __format::__formattable_with<_Tp, _Context>;
 
-    public:
-      class handle : public __format::_Arg_value<_Context>::_HandleBase
-      {
-	using _Base = typename __format::_Arg_value<_Context>::_HandleBase;
-
 	// Format as const if possible, to reduce instantiations.
 	template<typename _Tp>
 	  using __maybe_const_t
@@ -4306,31 +4302,18 @@ namespace __format
 	    __format_ctx.advance_to(__f.format(__val, __format_ctx));
 	  }
 
+    public:
+      using handle = __format::_Arg_value<_Context>::_HandleBase;
+
 	template<typename _Tp>
-	  explicit
-	  handle(_Tp& __val) noexcept
+	  static handle
+	  create_handle(_Tp& __val) noexcept
 	  {
-	    this->_M_ptr = __builtin_addressof(__val);
-	    auto __func = _S_format<__maybe_const_t<_Tp>>;
-	    this->_M_func = reinterpret_cast<void(*)()>(__func);
+	    handle out;
+	    out._M_ptr = __builtin_addressof(__val);
+	    out._M_func = _S_format<__maybe_const_t<_Tp>>;
+	    return out;
 	  }
-
-	friend class basic_format_arg<_Context>;
-
-      public:
-	handle(const handle&) = default;
-	handle& operator=(const handle&) = default;
-
-	[[__gnu__::__always_inline__]]
-	void
-	format(basic_format_parse_context<_CharT>& __pc, _Context& __fc) const
-	{
-	  using _Func = void(*)(basic_format_parse_context<_CharT>&,
-				_Context&, const void*);
-	  auto __f = reinterpret_cast<_Func>(this->_M_func);
-	  __f(__pc, __fc, this->_M_ptr);
-	}
-      };
 
       [[__gnu__::__always_inline__]]
       basic_format_arg() noexcept : _M_type(__format::_Arg_none) { }
@@ -4541,8 +4524,11 @@ namespace __format
 	  else if constexpr (is_same_v<remove_const_t<_Tp>, char>
 			       && is_same_v<_CharT, wchar_t>)
 	    _M_set(static_cast<_Td>(static_cast<unsigned char>(__v)));
-	  else
-	    _M_set(static_cast<_Td>(__v));
+	  else if constexpr (is_same_v<_Td, handle>) {
+	    _M_set(create_handle(__v));
+	  } else {
+	    _M_set(__v);
+	  }
 	}
 
       template<typename _Ctx, typename... _Argz>
@@ -5170,7 +5156,7 @@ namespace __format
 	  if constexpr (is_same_v<_Type, monostate>)
 	    __format::__invalid_arg_id_in_format_string();
 	  else if constexpr (is_same_v<_Type, handle>)
-	    __arg.format(this->_M_pc, this->_M_fc);
+	    __arg._M_func(this->_M_pc, this->_M_fc, __arg._M_ptr);
 	  else if constexpr (is_default_constructible_v<_Formatter>)
 	    {
 	      _Formatter __f;
