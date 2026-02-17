@@ -48,39 +48,40 @@ namespace __gnu_cxx
   template<typename _Tp>
     struct __aligned_membuf
     {
-      // Target macro ADJUST_FIELD_ALIGN can produce different alignment for
-      // types when used as class members. __aligned_membuf is intended
-      // for use as a class member, so align the buffer as for a class member.
-      // Since GCC 8 we can just use alignas(_Tp) to get the right alignment.
-#ifdef __EDG__
-      // The EDG front end does not implement the PR c++/69560 alignof change.
-      struct _Tp2 { _Tp _M_t; };
-      alignas(__alignof__(_Tp2::_M_t))
-#else
-      alignas(_Tp)
-#endif
-	unsigned char _M_storage[sizeof(_Tp)];
+      union {
+	char c = '\0';
+	_Tp _M_storage;
+      };
 
-      __aligned_membuf() = default;
+      _GLIBCXX26_CONSTEXPR
+      __aligned_membuf() {}
 
       // Can be used to avoid value-initialization zeroing _M_storage.
+      _GLIBCXX26_CONSTEXPR
       __aligned_membuf(std::nullptr_t) { }
 
+      _GLIBCXX26_CONSTEXPR
+      ~__aligned_membuf() {}
+
+      _GLIBCXX26_CONSTEXPR
       void*
       _M_addr() noexcept
       { return static_cast<void*>(&_M_storage); }
 
+      _GLIBCXX26_CONSTEXPR
       const void*
       _M_addr() const noexcept
       { return static_cast<const void*>(&_M_storage); }
 
+      _GLIBCXX26_CONSTEXPR
       _Tp*
       _M_ptr() noexcept
-      { return static_cast<_Tp*>(_M_addr()); }
+      { return &_M_storage; }
 
+      _GLIBCXX26_CONSTEXPR
       const _Tp*
       _M_ptr() const noexcept
-      { return static_cast<const _Tp*>(_M_addr()); }
+      { return &_M_storage; }
     };
 
 #if _GLIBCXX_INLINE_VERSION
@@ -95,33 +96,44 @@ namespace __gnu_cxx
   template<typename _Tp>
     struct __aligned_buffer
     {
-      // Using __alignof__ gives the alignment for a complete object.
-      alignas(__alignof__(_Tp)) unsigned char _M_storage[sizeof(_Tp)];
+      union {
+	char c = '\0';
+	_Tp _M_storage;
+      };
 
-      __aligned_buffer() = default;
+      _GLIBCXX26_CONSTEXPR
+      __aligned_buffer() {}
 
       // Can be used to avoid value-initialization
+      _GLIBCXX26_CONSTEXPR
       __aligned_buffer(std::nullptr_t) { }
 
+      _GLIBCXX26_CONSTEXPR
+      ~__aligned_buffer() {}
+      
+      _GLIBCXX26_CONSTEXPR
       void*
       _M_addr() noexcept
       {
         return static_cast<void*>(&_M_storage);
       }
 
+      _GLIBCXX26_CONSTEXPR
       const void*
       _M_addr() const noexcept
       {
         return static_cast<const void*>(&_M_storage);
       }
 
+      _GLIBCXX26_CONSTEXPR
       _Tp*
       _M_ptr() noexcept
-      { return static_cast<_Tp*>(_M_addr()); }
+      { return &_M_storage; }
 
+      _GLIBCXX26_CONSTEXPR
       const _Tp*
       _M_ptr() const noexcept
-      { return static_cast<const _Tp*>(_M_addr()); }
+      { return &_M_storage; }
     };
 #endif
 

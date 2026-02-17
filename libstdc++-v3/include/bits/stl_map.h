@@ -141,10 +141,12 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       protected:
 	_Compare comp;
 
+	_GLIBCXX26_CONSTEXPR
 	value_compare(_Compare __c)
 	: comp(__c) { }
 
       public:
+	_GLIBCXX26_CONSTEXPR
 	bool operator()(const value_type& __x, const value_type& __y) const
 	{ return comp(__x.first, __y.first); }
       };
@@ -198,6 +200,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 #if __cplusplus < 201103L
       map() : _M_t() { }
 #else
+      _GLIBCXX26_CONSTEXPR
       map() = default;
 #endif
 
@@ -206,6 +209,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  @param  __comp  A comparison object.
        *  @param  __a  An allocator object.
        */
+      _GLIBCXX26_CONSTEXPR
       explicit
       map(const _Compare& __comp,
 	  const allocator_type& __a = allocator_type())
@@ -220,6 +224,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       map(const map& __x)
       : _M_t(__x._M_t) { }
 #else
+      _GLIBCXX26_CONSTEXPR
       map(const map&) = default;
 
       /**
@@ -228,6 +233,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  The newly-created %map contains the exact contents of the moved
        *  instance. The moved instance is a valid, but unspecified, %map.
        */
+      _GLIBCXX26_CONSTEXPR
       map(map&&) = default;
 
       /**
@@ -241,6 +247,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  This is linear in N if the range is already sorted, and NlogN
        *  otherwise (where N is @a __l.size()).
        */
+      _GLIBCXX26_CONSTEXPR
       map(initializer_list<value_type> __l,
 	  const _Compare& __comp = _Compare(),
 	  const allocator_type& __a = allocator_type())
@@ -248,27 +255,32 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       { _M_t._M_insert_range_unique(__l.begin(), __l.end()); }
 
       /// Allocator-extended default constructor.
+      _GLIBCXX26_CONSTEXPR
       explicit
       map(const allocator_type& __a)
       : _M_t(_Pair_alloc_type(__a)) { }
 
       /// Allocator-extended copy constructor.
+      _GLIBCXX26_CONSTEXPR
       map(const map& __m, const __type_identity_t<allocator_type>& __a)
       : _M_t(__m._M_t, _Pair_alloc_type(__a)) { }
 
       /// Allocator-extended move constructor.
+      _GLIBCXX26_CONSTEXPR
       map(map&& __m, const __type_identity_t<allocator_type>& __a)
       noexcept(is_nothrow_copy_constructible<_Compare>::value
 	       && _Alloc_traits::_S_always_equal())
       : _M_t(std::move(__m._M_t), _Pair_alloc_type(__a)) { }
 
       /// Allocator-extended initialier-list constructor.
+      _GLIBCXX26_CONSTEXPR
       map(initializer_list<value_type> __l, const allocator_type& __a)
       : _M_t(_Pair_alloc_type(__a))
       { _M_t._M_insert_range_unique(__l.begin(), __l.end()); }
 
       /// Allocator-extended range constructor.
       template<typename _InputIterator>
+        _GLIBCXX26_CONSTEXPR
 	map(_InputIterator __first, _InputIterator __last,
 	    const allocator_type& __a)
 	: _M_t(_Pair_alloc_type(__a))
@@ -286,6 +298,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  distance(__first,__last)).
        */
       template<typename _InputIterator>
+        _GLIBCXX26_CONSTEXPR
 	map(_InputIterator __first, _InputIterator __last)
 	: _M_t()
 	{ _M_t._M_insert_range_unique(__first, __last); }
@@ -303,6 +316,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  distance(__first,__last)).
        */
       template<typename _InputIterator>
+        _GLIBCXX26_CONSTEXPR
 	map(_InputIterator __first, _InputIterator __last,
 	    const _Compare& __comp,
 	    const allocator_type& __a = allocator_type())
@@ -315,6 +329,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        * @since C++23
        */
       template<__detail::__container_compatible_range<value_type> _Rg>
+        _GLIBCXX26_CONSTEXPR
 	map(from_range_t, _Rg&& __rg,
 	    const _Compare& __comp,
 	    const _Alloc& __a = _Alloc())
@@ -323,6 +338,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       /// Allocator-extended range constructor.
       template<__detail::__container_compatible_range<value_type> _Rg>
+        _GLIBCXX26_CONSTEXPR
 	map(from_range_t, _Rg&& __rg, const _Alloc& __a = _Alloc())
 	: _M_t(_Pair_alloc_type(__a))
 	{ insert_range(std::forward<_Rg>(__rg)); }
@@ -335,6 +351,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  themselves are pointers, the pointed-to memory is not touched in any
        *  way.  Managing the pointer is the user's responsibility.
        */
+      _GLIBCXX26_CONSTEXPR
       ~map() = default;
 #endif
 
@@ -351,10 +368,12 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	return *this;
       }
 #else
+      _GLIBCXX26_CONSTEXPR
       map&
       operator=(const map&) = default;
 
       /// Move assignment operator.
+      _GLIBCXX26_CONSTEXPR
       map&
       operator=(map&&) = default;
 
@@ -369,6 +388,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  that the resulting %map's size is the same as the number
        *  of elements assigned.
        */
+      _GLIBCXX26_CONSTEXPR
       map&
       operator=(initializer_list<value_type> __l)
       {
@@ -378,6 +398,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 #endif
 
       /// Get a copy of the memory allocation object.
+      _GLIBCXX26_CONSTEXPR
       allocator_type
       get_allocator() const _GLIBCXX_NOEXCEPT
       { return allocator_type(_M_t.get_allocator()); }
@@ -388,6 +409,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  %map.
        *  Iteration is done in ascending order according to the keys.
        */
+      _GLIBCXX26_CONSTEXPR
       iterator
       begin() _GLIBCXX_NOEXCEPT
       { return _M_t.begin(); }
@@ -397,6 +419,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  in the %map.  Iteration is done in ascending order according to the
        *  keys.
        */
+      _GLIBCXX26_CONSTEXPR
       const_iterator
       begin() const _GLIBCXX_NOEXCEPT
       { return _M_t.begin(); }
@@ -406,6 +429,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  pair in the %map.  Iteration is done in ascending order
        *  according to the keys.
        */
+      _GLIBCXX26_CONSTEXPR
       iterator
       end() _GLIBCXX_NOEXCEPT
       { return _M_t.end(); }
@@ -415,6 +439,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  pair in the %map.  Iteration is done in ascending order according to
        *  the keys.
        */
+      _GLIBCXX26_CONSTEXPR
       const_iterator
       end() const _GLIBCXX_NOEXCEPT
       { return _M_t.end(); }
@@ -424,6 +449,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  the %map.  Iteration is done in descending order according to the
        *  keys.
        */
+      _GLIBCXX26_CONSTEXPR
       reverse_iterator
       rbegin() _GLIBCXX_NOEXCEPT
       { return _M_t.rbegin(); }
@@ -433,6 +459,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  last pair in the %map.  Iteration is done in descending order
        *  according to the keys.
        */
+      _GLIBCXX26_CONSTEXPR
       const_reverse_iterator
       rbegin() const _GLIBCXX_NOEXCEPT
       { return _M_t.rbegin(); }
@@ -442,6 +469,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  first pair in the %map.  Iteration is done in descending order
        *  according to the keys.
        */
+      _GLIBCXX26_CONSTEXPR
       reverse_iterator
       rend() _GLIBCXX_NOEXCEPT
       { return _M_t.rend(); }
@@ -451,6 +479,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  before the first pair in the %map.  Iteration is done in descending
        *  order according to the keys.
        */
+      _GLIBCXX26_CONSTEXPR
       const_reverse_iterator
       rend() const _GLIBCXX_NOEXCEPT
       { return _M_t.rend(); }
@@ -461,6 +490,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  in the %map.  Iteration is done in ascending order according to the
        *  keys.
        */
+      _GLIBCXX26_CONSTEXPR
       const_iterator
       cbegin() const noexcept
       { return _M_t.begin(); }
@@ -470,6 +500,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  pair in the %map.  Iteration is done in ascending order according to
        *  the keys.
        */
+      _GLIBCXX26_CONSTEXPR
       const_iterator
       cend() const noexcept
       { return _M_t.end(); }
@@ -479,6 +510,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  last pair in the %map.  Iteration is done in descending order
        *  according to the keys.
        */
+      _GLIBCXX26_CONSTEXPR
       const_reverse_iterator
       crbegin() const noexcept
       { return _M_t.rbegin(); }
@@ -488,6 +520,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  before the first pair in the %map.  Iteration is done in descending
        *  order according to the keys.
        */
+      _GLIBCXX26_CONSTEXPR
       const_reverse_iterator
       crend() const noexcept
       { return _M_t.rend(); }
@@ -497,16 +530,20 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       /** Returns true if the %map is empty.  (Thus begin() would equal
        *  end().)
       */
-      _GLIBCXX_NODISCARD bool
+      _GLIBCXX_NODISCARD
+      _GLIBCXX26_CONSTEXPR
+      bool
       empty() const _GLIBCXX_NOEXCEPT
       { return _M_t.empty(); }
 
       /** Returns the size of the %map.  */
+      _GLIBCXX26_CONSTEXPR
       size_type
       size() const _GLIBCXX_NOEXCEPT
       { return _M_t.size(); }
 
       /** Returns the maximum size of the %map.  */
+      _GLIBCXX26_CONSTEXPR
       size_type
       max_size() const _GLIBCXX_NOEXCEPT
       { return _M_t.max_size(); }
@@ -524,6 +561,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  Lookup requires logarithmic time.
        */
+      _GLIBCXX26_CONSTEXPR
       mapped_type&
       operator[](const key_type& __k)
       {
@@ -544,6 +582,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       }
 
 #if __cplusplus >= 201103L
+      _GLIBCXX26_CONSTEXPR
       mapped_type&
       operator[](key_type&& __k)
       {
@@ -569,6 +608,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *           such a data is present in the %map.
        *  @throw  std::out_of_range  If no such data is present.
        */
+      _GLIBCXX26_CONSTEXPR
       mapped_type&
       at(const key_type& __k)
       {
@@ -578,6 +618,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	return (*__i).second;
       }
 
+      _GLIBCXX26_CONSTEXPR
       const mapped_type&
       at(const key_type& __k) const
       {
@@ -608,6 +649,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires logarithmic time.
        */
       template<typename... _Args>
+        _GLIBCXX26_CONSTEXPR
 	std::pair<iterator, bool>
 	emplace(_Args&&... __args)
 	{
@@ -658,6 +700,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires logarithmic time (if the hint is not taken).
        */
       template<typename... _Args>
+        _GLIBCXX26_CONSTEXPR
 	iterator
 	emplace_hint(const_iterator __pos, _Args&&... __args)
 	{
@@ -668,6 +711,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
 #ifdef __glibcxx_node_extract // >= C++17
       /// Extract a node.
+      _GLIBCXX26_CONSTEXPR
       node_type
       extract(const_iterator __pos)
       {
@@ -676,23 +720,27 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       }
 
       /// Extract a node.
+      _GLIBCXX26_CONSTEXPR
       node_type
       extract(const key_type& __x)
       { return _M_t.extract(__x); }
 
 #ifdef __glibcxx_associative_heterogeneous_erasure // C++23
       template <__heterogeneous_tree_key<map> _Kt>
+        _GLIBCXX26_CONSTEXPR
 	node_type
 	extract(_Kt&& __key)
 	{ return _M_t._M_extract_tr(__key); }
 #endif
 
       /// Re-insert an extracted node.
+      _GLIBCXX26_CONSTEXPR
       insert_return_type
       insert(node_type&& __nh)
       { return _M_t._M_reinsert_node_unique(std::move(__nh)); }
 
       /// Re-insert an extracted node.
+      _GLIBCXX26_CONSTEXPR
       iterator
       insert(const_iterator __hint, node_type&& __nh)
       { return _M_t._M_reinsert_node_hint_unique(__hint, std::move(__nh)); }
@@ -701,6 +749,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	friend struct std::_Rb_tree_merge_helper;
 
       template<typename _Cmp2>
+        _GLIBCXX26_CONSTEXPR
 	void
 	merge(map<_Key, _Tp, _Cmp2, _Alloc>& __source)
 	{
@@ -709,11 +758,13 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	}
 
       template<typename _Cmp2>
+        _GLIBCXX26_CONSTEXPR
 	void
 	merge(map<_Key, _Tp, _Cmp2, _Alloc>&& __source)
 	{ merge(__source); }
 
       template<typename _Cmp2>
+        _GLIBCXX26_CONSTEXPR
 	void
 	merge(multimap<_Key, _Tp, _Cmp2, _Alloc>& __source)
 	{
@@ -722,6 +773,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	}
 
       template<typename _Cmp2>
+        _GLIBCXX26_CONSTEXPR
 	void
 	merge(multimap<_Key, _Tp, _Cmp2, _Alloc>&& __source)
 	{ merge(__source); }
@@ -749,6 +801,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires logarithmic time.
        */
       template <typename... _Args>
+        _GLIBCXX26_CONSTEXPR
 	pair<iterator, bool>
 	try_emplace(const key_type& __k, _Args&&... __args)
 	{
@@ -766,6 +819,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       // move-capable overload
       template <typename... _Args>
+        _GLIBCXX26_CONSTEXPR
 	pair<iterator, bool>
 	try_emplace(key_type&& __k, _Args&&... __args)
 	{
@@ -809,6 +863,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires logarithmic time (if the hint is not taken).
        */
       template <typename... _Args>
+        _GLIBCXX26_CONSTEXPR
 	iterator
 	try_emplace(const_iterator __hint, const key_type& __k,
 		    _Args&&... __args)
@@ -828,6 +883,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       // move-capable overload
       template <typename... _Args>
+        _GLIBCXX26_CONSTEXPR
 	iterator
 	try_emplace(const_iterator __hint, key_type&& __k, _Args&&... __args)
 	{
@@ -861,6 +917,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires logarithmic time.
        *  @{
        */
+      _GLIBCXX26_CONSTEXPR
       std::pair<iterator, bool>
       insert(const value_type& __x)
       { return _M_t._M_insert_unique(__x); }
@@ -868,11 +925,13 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 #if __cplusplus >= 201103L
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // 2354. Unnecessary copying when inserting into maps with braced-init
+      _GLIBCXX26_CONSTEXPR
       std::pair<iterator, bool>
       insert(value_type&& __x)
       { return _M_t._M_insert_unique(std::move(__x)); }
 
       template<typename _Pair>
+        _GLIBCXX26_CONSTEXPR
 	__enable_if_t<is_constructible<value_type, _Pair>::value,
 		      pair<iterator, bool>>
 	insert(_Pair&& __x)
@@ -906,6 +965,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  Complexity similar to that of the range constructor.
        */
+      _GLIBCXX26_CONSTEXPR
       void
       insert(std::initializer_list<value_type> __list)
       { insert(__list.begin(), __list.end()); }
@@ -919,6 +979,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *               the map's value type.
        */
       template<__detail::__container_compatible_range<value_type> _Rg>
+        _GLIBCXX26_CONSTEXPR
 	void
 	insert_range(_Rg&& __rg)
 	{
@@ -953,6 +1014,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires logarithmic time (if the hint is not taken).
        *  @{
        */
+      _GLIBCXX26_CONSTEXPR
       iterator
 #if __cplusplus >= 201103L
       insert(const_iterator __position, const value_type& __x)
@@ -964,11 +1026,13 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 #if __cplusplus >= 201103L
       // _GLIBCXX_RESOLVE_LIB_DEFECTS
       // 2354. Unnecessary copying when inserting into maps with braced-init
+      _GLIBCXX26_CONSTEXPR
       iterator
       insert(const_iterator __position, value_type&& __x)
       { return _M_t._M_insert_unique_(__position, std::move(__x)); }
 
       template<typename _Pair>
+        _GLIBCXX26_CONSTEXPR
 	__enable_if_t<is_constructible<value_type, _Pair>::value, iterator>
 	insert(const_iterator __position, _Pair&& __x)
 	{
@@ -987,6 +1051,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Complexity similar to that of the range constructor.
        */
       template<typename _InputIterator>
+        _GLIBCXX26_CONSTEXPR
 	void
 	insert(_InputIterator __first, _InputIterator __last)
 	{ _M_t._M_insert_range_unique(__first, __last); }
@@ -1012,6 +1077,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires logarithmic time.
        */
       template <typename _Obj>
+        _GLIBCXX26_CONSTEXPR
 	pair<iterator, bool>
 	insert_or_assign(const key_type& __k, _Obj&& __obj)
 	{
@@ -1030,6 +1096,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       // move-capable overload
       template <typename _Obj>
+        _GLIBCXX26_CONSTEXPR
 	pair<iterator, bool>
 	insert_or_assign(key_type&& __k, _Obj&& __obj)
 	{
@@ -1067,6 +1134,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Insertion requires logarithmic time.
        */
       template <typename _Obj>
+        _GLIBCXX26_CONSTEXPR
 	iterator
 	insert_or_assign(const_iterator __hint,
 			 const key_type& __k, _Obj&& __obj)
@@ -1088,6 +1156,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
       // move-capable overload
       template <typename _Obj>
+        _GLIBCXX26_CONSTEXPR
 	iterator
 	insert_or_assign(const_iterator __hint, key_type&& __k, _Obj&& __obj)
 	{
@@ -1125,12 +1194,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  @{
        */
+      _GLIBCXX26_CONSTEXPR
       iterator
       erase(const_iterator __position)
       { return _M_t.erase(__position); }
 
       // LWG 2059
       _GLIBCXX_ABI_TAG_CXX11
+      _GLIBCXX26_CONSTEXPR
       iterator
       erase(iterator __position)
       { return _M_t.erase(__position); }
@@ -1163,6 +1234,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  the element is itself a pointer, the pointed-to memory is not touched
        *  in any way.  Managing the pointer is the user's responsibility.
        */
+      _GLIBCXX26_CONSTEXPR
       size_type
       erase(const key_type& __x)
       { return _M_t._M_erase_unique(__x); }
@@ -1172,6 +1244,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       // one element, such as if _Kt::operator< checks only part
       // of the key.
       template <__heterogeneous_tree_key<map> _Kt>
+        _GLIBCXX26_CONSTEXPR
 	size_type
 	erase(_Kt&& __x)
 	{ return _M_t._M_erase_tr(__x); }
@@ -1194,6 +1267,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  the element is itself a pointer, the pointed-to memory is not touched
        *  in any way.  Managing the pointer is the user's responsibility.
        */
+      _GLIBCXX26_CONSTEXPR
       iterator
       erase(const_iterator __first, const_iterator __last)
       { return _M_t.erase(__first, __last); }
@@ -1228,6 +1302,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  Whether the allocators are swapped depends on the allocator traits.
        */
+      _GLIBCXX26_CONSTEXPR
       void
       swap(map& __x)
       _GLIBCXX_NOEXCEPT_IF(__is_nothrow_swappable<_Compare>::value)
@@ -1239,6 +1314,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  pointers, the pointed-to memory is not touched in any way.
        *  Managing the pointer is the user's responsibility.
        */
+      _GLIBCXX26_CONSTEXPR
       void
       clear() _GLIBCXX_NOEXCEPT
       { _M_t.clear(); }
@@ -1248,6 +1324,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Returns the key comparison object out of which the %map was
        *  constructed.
        */
+      _GLIBCXX26_CONSTEXPR
       key_compare
       key_comp() const
       { return _M_t.key_comp(); }
@@ -1256,6 +1333,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  Returns a value comparison object, built from the key comparison
        *  object out of which the %map was constructed.
        */
+      _GLIBCXX26_CONSTEXPR
       value_compare
       value_comp() const
       { return value_compare(_M_t.key_comp()); }
@@ -1275,12 +1353,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  past-the-end ( @c end() ) iterator.
        */
 
+      _GLIBCXX26_CONSTEXPR
       iterator
       find(const key_type& __x)
       { return _M_t.find(__x); }
 
 #ifdef __glibcxx_generic_associative_lookup // C++ >= 14
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	find(const _Kt& __x) -> decltype(_M_t._M_find_tr(__x))
 	{ return _M_t._M_find_tr(__x); }
@@ -1300,12 +1380,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  returns the past-the-end ( @c end() ) iterator.
        */
 
+      _GLIBCXX26_CONSTEXPR
       const_iterator
       find(const key_type& __x) const
       { return _M_t.find(__x); }
 
 #ifdef __glibcxx_generic_associative_lookup // C++ >= 14
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	find(const _Kt& __x) const -> decltype(_M_t._M_find_tr(__x))
 	{ return _M_t._M_find_tr(__x); }
@@ -1321,12 +1403,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  This function only makes sense for multimaps; for map the result will
        *  either be 0 (not present) or 1 (present).
        */
+      _GLIBCXX26_CONSTEXPR
       size_type
       count(const key_type& __x) const
       { return _M_t.find(__x) == _M_t.end() ? 0 : 1; }
 
 #ifdef __glibcxx_generic_associative_lookup // C++ >= 14
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	count(const _Kt& __x) const -> decltype(_M_t._M_count_tr(__x))
 	{ return _M_t._M_count_tr(__x); }
@@ -1340,11 +1424,13 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  @param  __x  Key of (key, value) pairs to be located.
        *  @return  True if there is an element with the specified key.
        */
+      _GLIBCXX26_CONSTEXPR
       bool
       contains(const key_type& __x) const
       { return _M_t.find(__x) != _M_t.end(); }
 
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	contains(const _Kt& __x) const
 	-> decltype(_M_t._M_find_tr(__x), void(), true)
@@ -1364,12 +1450,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  pointing to the first element that has a greater value than given key
        *  or end() if no such element exists.
        */
+      _GLIBCXX26_CONSTEXPR
       iterator
       lower_bound(const key_type& __x)
       { return _M_t.lower_bound(__x); }
 
 #ifdef __glibcxx_generic_associative_lookup // C++ >= 14
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	lower_bound(const _Kt& __x)
 	-> decltype(iterator(_M_t._M_lower_bound_tr(__x)))
@@ -1389,12 +1477,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  pointing to the first element that has a greater value than given key
        *  or end() if no such element exists.
        */
+      _GLIBCXX26_CONSTEXPR
       const_iterator
       lower_bound(const key_type& __x) const
       { return _M_t.lower_bound(__x); }
 
 #ifdef __glibcxx_generic_associative_lookup // C++ >= 14
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	lower_bound(const _Kt& __x) const
 	-> decltype(const_iterator(_M_t._M_lower_bound_tr(__x)))
@@ -1409,12 +1499,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  @return Iterator pointing to the first element
        *          greater than key, or end().
        */
+      _GLIBCXX26_CONSTEXPR
       iterator
       upper_bound(const key_type& __x)
       { return _M_t.upper_bound(__x); }
 
 #ifdef __glibcxx_generic_associative_lookup // C++ >= 14
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	upper_bound(const _Kt& __x)
 	-> decltype(iterator(_M_t._M_upper_bound_tr(__x)))
@@ -1429,12 +1521,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *  @return  Read-only (constant) iterator pointing to first iterator
        *           greater than key, or end().
        */
+      _GLIBCXX26_CONSTEXPR
       const_iterator
       upper_bound(const key_type& __x) const
       { return _M_t.upper_bound(__x); }
 
 #ifdef __glibcxx_generic_associative_lookup // C++ >= 14
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	upper_bound(const _Kt& __x) const
 	-> decltype(const_iterator(_M_t._M_upper_bound_tr(__x)))
@@ -1458,12 +1552,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  This function probably only makes sense for multimaps.
        */
+      _GLIBCXX26_CONSTEXPR
       std::pair<iterator, iterator>
       equal_range(const key_type& __x)
       { return _M_t.equal_range(__x); }
 
 #ifdef __glibcxx_generic_associative_lookup // C++ >= 14
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	equal_range(const _Kt& __x)
 	-> decltype(pair<iterator, iterator>(_M_t._M_equal_range_tr(__x)))
@@ -1487,12 +1583,14 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
        *
        *  This function probably only makes sense for multimaps.
        */
+      _GLIBCXX26_CONSTEXPR
       std::pair<const_iterator, const_iterator>
       equal_range(const key_type& __x) const
       { return _M_t.equal_range(__x); }
 
 #ifdef __glibcxx_generic_associative_lookup // C++ >= 14
       template<typename _Kt>
+        _GLIBCXX26_CONSTEXPR
 	auto
 	equal_range(const _Kt& __x) const
 	-> decltype(pair<const_iterator, const_iterator>(
@@ -1505,17 +1603,20 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       ///@}
 
       template<typename _K1, typename _T1, typename _C1, typename _A1>
+        _GLIBCXX26_CONSTEXPR
 	friend bool
 	operator==(const map<_K1, _T1, _C1, _A1>&,
 		   const map<_K1, _T1, _C1, _A1>&);
 
 #if __cpp_lib_three_way_comparison
       template<typename _K1, typename _T1, typename _C1, typename _A1>
+        _GLIBCXX26_CONSTEXPR
 	friend __detail::__synth3way_t<pair<const _K1, _T1>>
 	operator<=>(const map<_K1, _T1, _C1, _A1>&,
 		    const map<_K1, _T1, _C1, _A1>&);
 #else
       template<typename _K1, typename _T1, typename _C1, typename _A1>
+        _GLIBCXX26_CONSTEXPR
 	friend bool
 	operator<(const map<_K1, _T1, _C1, _A1>&,
 		  const map<_K1, _T1, _C1, _A1>&);
@@ -1587,6 +1688,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
    *  and if corresponding elements compare equal.
   */
   template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     inline bool
     operator==(const map<_Key, _Tp, _Compare, _Alloc>& __x,
 	       const map<_Key, _Tp, _Compare, _Alloc>& __y)
@@ -1608,6 +1710,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
    *  `<` and `>=` etc.
   */
   template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     inline __detail::__synth3way_t<pair<const _Key, _Tp>>
     operator<=>(const map<_Key, _Tp, _Compare, _Alloc>& __x,
 		const map<_Key, _Tp, _Compare, _Alloc>& __y)
@@ -1625,6 +1728,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
    *  See std::lexicographical_compare() for how the determination is made.
   */
   template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     inline bool
     operator<(const map<_Key, _Tp, _Compare, _Alloc>& __x,
 	      const map<_Key, _Tp, _Compare, _Alloc>& __y)
@@ -1632,6 +1736,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
   /// Based on operator==
   template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     inline bool
     operator!=(const map<_Key, _Tp, _Compare, _Alloc>& __x,
 	       const map<_Key, _Tp, _Compare, _Alloc>& __y)
@@ -1639,6 +1744,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
   /// Based on operator<
   template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     inline bool
     operator>(const map<_Key, _Tp, _Compare, _Alloc>& __x,
 	      const map<_Key, _Tp, _Compare, _Alloc>& __y)
@@ -1646,6 +1752,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
   /// Based on operator<
   template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     inline bool
     operator<=(const map<_Key, _Tp, _Compare, _Alloc>& __x,
 	       const map<_Key, _Tp, _Compare, _Alloc>& __y)
@@ -1653,6 +1760,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
   /// Based on operator<
   template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     inline bool
     operator>=(const map<_Key, _Tp, _Compare, _Alloc>& __x,
 	       const map<_Key, _Tp, _Compare, _Alloc>& __y)
@@ -1661,6 +1769,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 
   /// See std::map::swap().
   template<typename _Key, typename _Tp, typename _Compare, typename _Alloc>
+    _GLIBCXX26_CONSTEXPR
     inline void
     swap(map<_Key, _Tp, _Compare, _Alloc>& __x,
 	 map<_Key, _Tp, _Compare, _Alloc>& __y)
@@ -1680,10 +1789,12 @@ _GLIBCXX_END_NAMESPACE_CONTAINER
     private:
       friend class _GLIBCXX_STD_C::map<_Key, _Val, _Cmp1, _Alloc>;
 
+      _GLIBCXX26_CONSTEXPR
       static auto&
       _S_get_tree(_GLIBCXX_STD_C::map<_Key, _Val, _Cmp2, _Alloc>& __map)
       { return __map._M_t; }
 
+      _GLIBCXX26_CONSTEXPR
       static auto&
       _S_get_tree(_GLIBCXX_STD_C::multimap<_Key, _Val, _Cmp2, _Alloc>& __map)
       { return __map._M_t; }
