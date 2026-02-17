@@ -129,6 +129,7 @@ namespace __format
     struct _Runtime_format_string
     {
       [[__gnu__::__always_inline__]]
+      _GLIBCXX26_CONSTEXPR
       _Runtime_format_string(basic_string_view<_CharT> __s) noexcept
       : _M_str(__s) { }
 
@@ -174,6 +175,7 @@ namespace __format
 	basic_format_string(const _Tp& __s);
 
       [[__gnu__::__always_inline__]]
+      _GLIBCXX26_CONSTEXPR
       basic_format_string(__format::_Runtime_format_string<_CharT> __s) noexcept
       : _M_str(__s._M_str)
       { }
@@ -198,12 +200,14 @@ namespace __format
 
 #if __cpp_lib_format >= 202311L // >= C++26
   [[__gnu__::__always_inline__]]
+  _GLIBCXX26_CONSTEXPR
   inline __format::_Runtime_format_string<char>
   runtime_format(string_view __fmt) noexcept
   { return __fmt; }
 
 #ifdef _GLIBCXX_USE_WCHAR_T
   [[__gnu__::__always_inline__]]
+  _GLIBCXX26_CONSTEXPR
   inline __format::_Runtime_format_string<wchar_t>
   runtime_format(wstring_view __fmt) noexcept
   { return __fmt; }
@@ -751,6 +755,7 @@ namespace __format
       }
 
       template<typename _Context>
+        _GLIBCXX26_CONSTEXPR
 	size_t
 	_M_get_width(_Context& __ctx) const
 	{
@@ -776,6 +781,7 @@ namespace __format
     };
 
   template<typename _Int>
+    _GLIBCXX26_CONSTEXPR
     inline char*
     __put_sign(_Int __i, _Sign __sign, char* __dest) noexcept
     {
@@ -793,6 +799,7 @@ namespace __format
   // Write STR to OUT (and do so efficiently if OUT is a _Sink_iter).
   template<typename _Out, typename _CharT>
     requires output_iterator<_Out, const _CharT&>
+    _GLIBCXX26_CONSTEXPR
     inline _Out
     __write(_Out __out, basic_string_view<_CharT> __str)
     {
@@ -884,6 +891,7 @@ namespace __format
   // Write STR to OUT, with alignment and padding as determined by SPEC.
   // pre: __spec._M_align != _Align_default || __align != _Align_default
   template<typename _CharT, typename _Out>
+    _GLIBCXX26_CONSTEXPR
     _Out
     __write_padded_as_spec(basic_string_view<type_identity_t<_CharT>> __str,
 			   size_t __estimated_width,
@@ -1258,12 +1266,14 @@ namespace __format
   struct _Optional_locale
   {
     [[__gnu__::__always_inline__]]
+    _GLIBCXX26_CONSTEXPR
     _Optional_locale() : _M_dummy(), _M_hasval(false) { }
 
     _Optional_locale(const locale& __loc) noexcept
     : _M_loc(__loc), _M_hasval(true)
     { }
 
+    _GLIBCXX26_CONSTEXPR
     _Optional_locale(const _Optional_locale& __l) noexcept
     : _M_dummy(), _M_hasval(__l._M_hasval)
     {
@@ -1271,6 +1281,7 @@ namespace __format
 	std::construct_at(&_M_loc, __l._M_loc);
     }
 
+    _GLIBCXX26_CONSTEXPR
     _Optional_locale&
     operator=(const _Optional_locale& __l) noexcept
     {
@@ -1292,6 +1303,7 @@ namespace __format
       return *this;
     }
 
+    _GLIBCXX26_CONSTEXPR
     ~_Optional_locale() { if (_M_hasval) _M_loc.~locale(); }
 
     _Optional_locale&
@@ -1318,6 +1330,7 @@ namespace __format
       return _M_loc;
     }
 
+    _GLIBCXX26_CONSTEXPR
     bool has_value() const noexcept { return _M_hasval; }
 
     union {
@@ -1392,6 +1405,7 @@ namespace __format
       }
 
       template<typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	_Out
 	format(basic_string_view<_CharT> __s,
 	       basic_format_context<_Out, _CharT>& __fc) const
@@ -1642,6 +1656,7 @@ namespace __format
 	}
 
       template<typename _Int, typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(_Int __i, basic_format_context<_Out, _CharT>& __fc) const
 	{
@@ -1713,6 +1728,7 @@ namespace __format
 	}
 
       template<typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(bool __i, basic_format_context<_Out, _CharT>& __fc) const
 	{
@@ -1795,6 +1811,7 @@ namespace __format
 	}
 
       template<typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	_M_format_int(string_view __narrow_str, size_t __prefix_len,
 		      basic_format_context<_Out, _CharT>& __fc) const
@@ -2693,6 +2710,7 @@ namespace __format
 
       template<typename _Out>
 	[[__gnu__::__nonnull__]]
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(const _CharT* __u,
 	       basic_format_context<_Out, _CharT>& __fc) const
@@ -2817,6 +2835,7 @@ namespace __format
       { return _M_f.parse(__pc); }
 
       template<typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, char>::iterator
 	format(basic_string_view<char, _Traits> __u,
 	       basic_format_context<_Out, char>& __fc) const
@@ -2912,6 +2931,7 @@ namespace __format
       }
 
       template<typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(_Tp __u, basic_format_context<_Out, _CharT>& __fc) const
 	{ return _M_f.format(__u, __fc); }
@@ -3317,6 +3337,7 @@ namespace __format
       constexpr _Sink_iter
       operator++(int) { return *this; }
 
+      _GLIBCXX26_CONSTEXPR
       auto
       _M_reserve(size_t __n) const
       { return _M_sink->_M_reserve(__n); }
@@ -3353,6 +3374,7 @@ namespace __format
 
       // The portion of the span that has been written to.
       [[__gnu__::__always_inline__]]
+      _GLIBCXX26_CONSTEXPR
       span<_CharT>
       _M_used() const noexcept
       { return _M_span.first(_M_next - _M_span.begin()); }
@@ -3370,6 +3392,7 @@ namespace __format
       { _M_next = _M_span.begin(); }
 
       // Replace the current output range.
+      _GLIBCXX26_CONSTEXPR
       void
       _M_reset(span<_CharT> __s, size_t __pos = 0) noexcept
       {
@@ -3410,10 +3433,13 @@ namespace __format
       struct _Reservation
       {
 	// True if the reservation was successful, false otherwise.
+        _GLIBCXX26_CONSTEXPR
 	explicit operator bool() const noexcept { return _M_sink; }
 	// A pointer to write directly to the sink.
+        _GLIBCXX26_CONSTEXPR
 	_CharT* get() const noexcept { return _M_sink->_M_next.operator->(); }
 	// Add n to the _M_next iterator for the sink.
+        _GLIBCXX26_CONSTEXPR
 	void _M_bump(size_t __n) { _M_sink->_M_bump(__n); }
 	_Sink* _M_sink;
       };
@@ -3462,6 +3488,7 @@ namespace __format
   template<typename _CharT>
     class _Fixedbuf_sink final : public _Sink<_CharT>
     {
+      _GLIBCXX26_CONSTEXPR
       void
       _M_overflow() override
       {
@@ -3510,6 +3537,7 @@ namespace __format
       _Seq _M_seq;
     protected:
       // Transfer buffer contents to the sequence, so buffer can be refilled.
+      _GLIBCXX26_CONSTEXPR
       void
       _M_overflow() override
       {
@@ -3529,6 +3557,7 @@ namespace __format
 	this->_M_rewind();
       }
 
+      _GLIBCXX26_CONSTEXPR
       typename _Sink<_CharT>::_Reservation
       _M_reserve(size_t __n) override
       {
@@ -3565,6 +3594,7 @@ namespace __format
 	  return _Sink<_CharT>::_M_reserve(__n);
       }
 
+      _GLIBCXX26_CONSTEXPR
       void
       _M_bump(size_t __n) override
       {
@@ -3596,15 +3626,18 @@ namespace __format
       // to _M_buf if it overflows? Or even do that for all unused capacity?
 
       [[__gnu__::__always_inline__]]
+      _GLIBCXX26_CONSTEXPR
       _Seq_sink() noexcept(is_nothrow_default_constructible_v<_Seq>)
       { }
 
+      _GLIBCXX26_CONSTEXPR
       _Seq_sink(_Seq&& __s) noexcept(is_nothrow_move_constructible_v<_Seq>)
       : _M_seq(std::move(__s))
       { }
 
       using _Sink<_CharT>::out;
 
+      _GLIBCXX26_CONSTEXPR
       _Seq
       get() &&
       {
@@ -3683,6 +3716,7 @@ namespace __format
 
     public:
       [[__gnu__::__always_inline__]]
+      _GLIBCXX26_CONSTEXPR
       explicit
       _Iter_sink(_OutIter __out, iter_difference_t<_OutIter> __max = -1)
       : _M_out(std::move(__out)), _M_max(__max)
@@ -3801,6 +3835,7 @@ namespace __format
       }
 
     public:
+      _GLIBCXX26_CONSTEXPR
       explicit
       _Iter_sink(_OutIter __out, iter_difference_t<_OutIter> __n = -1) noexcept
       : _Sink<_CharT>(_S_make_span(std::to_address(__out), __n, _M_buf)),
@@ -4164,16 +4199,19 @@ namespace __format
       };
 
       [[__gnu__::__always_inline__]]
+      _GLIBCXX26_CONSTEXPR
       _Arg_value() : _M_none() { }
 
 #if 0
       template<typename _Tp>
+        _GLIBCXX26_CONSTEXPR
 	_Arg_value(in_place_type_t<_Tp>, _Tp __val)
 	{ _S_get<_Tp>() = __val; }
 #endif
 
       template<typename _Tp, typename _Self>
 	[[__gnu__::__always_inline__]]
+        _GLIBCXX26_CONSTEXPR
 	static auto&
 	_S_get(_Self& __u) noexcept
 	{
@@ -4268,6 +4306,7 @@ namespace __format
     class _Arg_store;
 
   template<typename _Visitor, typename _Ctx>
+    _GLIBCXX26_CONSTEXPR
     decltype(auto) __visit_format_arg(_Visitor&&, basic_format_arg<_Ctx>);
 
   template<typename _Ch, typename _Tp>
@@ -4291,6 +4330,7 @@ namespace __format
 	    = __conditional_t<__formattable<const _Tp>, const _Tp, _Tp>;
 
 	template<typename _Tq>
+          _GLIBCXX26_CONSTEXPR
 	  static void
 	  _S_format(basic_format_parse_context<_CharT>& __parse_ctx,
 		    _Context& __format_ctx, const void* __ptr)
@@ -4506,6 +4546,7 @@ namespace __format
 	}
 
       template<typename _Tp>
+        _GLIBCXX26_CONSTEXPR
 	void
 	_M_set(_Tp __v) noexcept
 	{
@@ -4515,6 +4556,7 @@ namespace __format
 
       template<typename _Tp>
 	requires __format::__formattable_with<_Tp, _Context>
+        _GLIBCXX26_CONSTEXPR
 	explicit
 	basic_format_arg(_Tp& __v) noexcept
 	{
@@ -4540,6 +4582,7 @@ namespace __format
 	visit_format_arg(_Visitor&& __vis, basic_format_arg<_Ctx>);
 
       template<typename _Visitor, typename _Ctx>
+        _GLIBCXX26_CONSTEXPR
 	friend decltype(auto)
 	__format::__visit_format_arg(_Visitor&&, basic_format_arg<_Ctx>);
 
@@ -4548,6 +4591,7 @@ namespace __format
 	__format::__to_arg_t_enum() noexcept;
 
       template<typename _Visitor>
+        _GLIBCXX26_CONSTEXPR
 	decltype(auto)
 	_M_visit(_Visitor&& __vis, __format::_Arg_t __type)
 	{
@@ -4660,6 +4704,7 @@ namespace __format
 namespace __format
 {
   template<typename _Visitor, typename _Ctx>
+    _GLIBCXX26_CONSTEXPR
     inline decltype(auto)
     __visit_format_arg(_Visitor&& __vis, basic_format_arg<_Ctx> __arg)
     {
@@ -4747,6 +4792,7 @@ namespace __format
       _M_size() const noexcept
       { return _M_packed_size ? _M_packed_size : _M_unpacked_size; }
 
+      _GLIBCXX26_CONSTEXPR
       typename __format::_Arg_t
       _M_type(size_t __i) const noexcept
       {
@@ -4755,6 +4801,7 @@ namespace __format
       }
 
       template<typename _Ctx, typename... _Args>
+        _GLIBCXX26_CONSTEXPR
 	friend auto
 	make_format_args(_Args&...) noexcept;
 
@@ -4766,9 +4813,11 @@ namespace __format
 
     public:
       template<typename... _Args>
+        _GLIBCXX26_CONSTEXPR
 	basic_format_args(const _Store<_Args...>& __store) noexcept;
 
       [[nodiscard,__gnu__::__always_inline__]]
+      _GLIBCXX26_CONSTEXPR
       basic_format_arg<_Context>
       get(size_t __i) const noexcept
       {
@@ -4791,6 +4840,7 @@ namespace __format
       -> basic_format_args<_Context>;
 
   template<typename _Context, typename... _Args>
+    _GLIBCXX26_CONSTEXPR
     auto
     make_format_args(_Args&... __fmt_args) noexcept;
 
@@ -4801,6 +4851,7 @@ namespace __format
       friend std::basic_format_args<_Context>;
 
       template<typename _Ctx, typename... _Argz>
+        _GLIBCXX26_CONSTEXPR
 	friend auto std::
 #if _GLIBCXX_INLINE_VERSION
 	__8:: // Needed for PR c++/59256
@@ -4820,6 +4871,7 @@ namespace __format
       _Element_t _M_args[sizeof...(_Args)];
 
       template<typename _Tp>
+        _GLIBCXX26_CONSTEXPR
 	static _Element_t
 	_S_make_elt(_Tp& __v)
 	{
@@ -4846,6 +4898,7 @@ namespace __format
       template<typename... _Tp>
 	requires (sizeof...(_Tp) == sizeof...(_Args))
 	[[__gnu__::__always_inline__]]
+        _GLIBCXX26_CONSTEXPR
 	_Arg_store(_Tp&... __a) noexcept
 	: _M_args{_S_make_elt(__a)...}
 	{ }
@@ -4857,6 +4910,7 @@ namespace __format
 
   template<typename _Context>
     template<typename... _Args>
+      _GLIBCXX26_CONSTEXPR
       inline
       basic_format_args<_Context>::
       basic_format_args(const _Store<_Args...>& __store) noexcept
@@ -4891,6 +4945,7 @@ namespace __format
   /// Capture formatting arguments for use by `std::vformat`.
   template<typename _Context = format_context, typename... _Args>
     [[nodiscard,__gnu__::__always_inline__]]
+    _GLIBCXX26_CONSTEXPR
     inline auto
     make_format_args(_Args&... __fmt_args) noexcept
     {
@@ -4904,6 +4959,7 @@ namespace __format
   /// Capture formatting arguments for use by `std::vformat` (for wide output).
   template<typename... _Args>
     [[nodiscard,__gnu__::__always_inline__]]
+    _GLIBCXX26_CONSTEXPR
     inline auto
     make_wformat_args(_Args&... __args) noexcept
     { return std::make_format_args<wformat_context>(__args...); }
@@ -4913,6 +4969,7 @@ namespace __format
 namespace __format
 {
   template<typename _Out, typename _CharT, typename _Context>
+    _GLIBCXX26_CONSTEXPR
     _Out
     __do_vformat_to(_Out, basic_string_view<_CharT>,
 		    const basic_format_args<_Context>&,
@@ -4945,11 +5002,13 @@ namespace __format
       _Out _M_out;
       __format::_Optional_locale _M_loc;
 
+      _GLIBCXX26_CONSTEXPR
       basic_format_context(basic_format_args<basic_format_context> __args,
 			   _Out __out)
       : _M_args(__args), _M_out(std::move(__out))
       { }
 
+      _GLIBCXX26_CONSTEXPR
       basic_format_context(basic_format_args<basic_format_context> __args,
 			   _Out __out, const std::locale& __loc)
       : _M_args(__args), _M_out(std::move(__out)), _M_loc(__loc)
@@ -4962,6 +5021,7 @@ namespace __format
       basic_format_context& operator=(const basic_format_context&) = delete;
 
       template<typename _Out2, typename _CharT2, typename _Context2>
+        _GLIBCXX26_CONSTEXPR
 	friend _Out2
 	__format::__do_vformat_to(_Out2, basic_string_view<_CharT2>,
 				  const basic_format_args<_Context2>&,
@@ -4978,6 +5038,7 @@ namespace __format
 	using formatter_type = formatter<_Tp, _CharT>;
 
       [[nodiscard]]
+      _GLIBCXX26_CONSTEXPR
       basic_format_arg<basic_format_context>
       arg(size_t __id) const noexcept
       { return _M_args.get(__id); }
@@ -4986,8 +5047,10 @@ namespace __format
       std::locale locale() { return _M_loc.value(); }
 
       [[nodiscard]]
+      _GLIBCXX26_CONSTEXPR
       iterator out() { return std::move(_M_out); }
 
+      _GLIBCXX26_CONSTEXPR
       void advance_to(iterator __it) { _M_out = std::move(__it); }
     };
 
@@ -5127,6 +5190,7 @@ namespace __format
     class _Formatting_scanner : public _Scanner<_CharT>
     {
     public:
+      _GLIBCXX26_CONSTEXPR
       _Formatting_scanner(basic_format_context<_Out, _CharT>& __fc,
 			  basic_string_view<_CharT> __str)
       : _Scanner<_CharT>(__str), _M_fc(__fc)
@@ -5234,6 +5298,7 @@ namespace __format
     };
 
   template<typename _Out, typename _CharT, typename _Context>
+    _GLIBCXX26_CONSTEXPR
     inline _Out
     __do_vformat_to(_Out __out, basic_string_view<_CharT> __fmt,
 		    const basic_format_args<_Context>& __args,
@@ -5374,6 +5439,7 @@ namespace __format
 
   template<typename _Out> requires output_iterator<_Out, const char&>
     [[__gnu__::__always_inline__]]
+    _GLIBCXX26_CONSTEXPR
     inline _Out
     vformat_to(_Out __out, string_view __fmt, format_args __args)
     { return __format::__do_vformat_to(std::move(__out), __fmt, __args); }
@@ -5381,6 +5447,7 @@ namespace __format
 #ifdef _GLIBCXX_USE_WCHAR_T
   template<typename _Out> requires output_iterator<_Out, const wchar_t&>
     [[__gnu__::__always_inline__]]
+    _GLIBCXX26_CONSTEXPR
     inline _Out
     vformat_to(_Out __out, wstring_view __fmt, wformat_args __args)
     { return __format::__do_vformat_to(std::move(__out), __fmt, __args); }
@@ -5407,6 +5474,7 @@ namespace __format
 #endif
 
   [[nodiscard]]
+  _GLIBCXX26_CONSTEXPR
   inline string
   vformat(string_view __fmt, format_args __args)
   {
@@ -5417,6 +5485,7 @@ namespace __format
 
 #ifdef _GLIBCXX_USE_WCHAR_T
   [[nodiscard]]
+  _GLIBCXX26_CONSTEXPR
   inline wstring
   vformat(wstring_view __fmt, wformat_args __args)
   {
@@ -5448,6 +5517,7 @@ namespace __format
 
   template<typename... _Args>
     [[nodiscard]]
+    _GLIBCXX26_CONSTEXPR
     inline string
     format(format_string<_Args...> __fmt, _Args&&... __args)
     { return std::vformat(__fmt.get(), std::make_format_args(__args...)); }
@@ -5455,6 +5525,7 @@ namespace __format
 #ifdef _GLIBCXX_USE_WCHAR_T
   template<typename... _Args>
     [[nodiscard]]
+    _GLIBCXX26_CONSTEXPR
     inline wstring
     format(wformat_string<_Args...> __fmt, _Args&&... __args)
     { return std::vformat(__fmt.get(), std::make_wformat_args(__args...)); }
@@ -5484,6 +5555,7 @@ namespace __format
 
   template<typename _Out, typename... _Args>
     requires output_iterator<_Out, const char&>
+    _GLIBCXX26_CONSTEXPR
     inline _Out
     format_to(_Out __out, format_string<_Args...> __fmt, _Args&&... __args)
     {
@@ -5494,6 +5566,7 @@ namespace __format
 #ifdef _GLIBCXX_USE_WCHAR_T
   template<typename _Out, typename... _Args>
     requires output_iterator<_Out, const wchar_t&>
+    _GLIBCXX26_CONSTEXPR
     inline _Out
     format_to(_Out __out, wformat_string<_Args...> __fmt, _Args&&... __args)
     {
@@ -5526,6 +5599,7 @@ namespace __format
 
   template<typename _Out, typename... _Args>
     requires output_iterator<_Out, const char&>
+    _GLIBCXX26_CONSTEXPR
     inline format_to_n_result<_Out>
     format_to_n(_Out __out, iter_difference_t<_Out> __n,
 		format_string<_Args...> __fmt, _Args&&... __args)
@@ -5539,6 +5613,7 @@ namespace __format
 #ifdef _GLIBCXX_USE_WCHAR_T
   template<typename _Out, typename... _Args>
     requires output_iterator<_Out, const wchar_t&>
+    _GLIBCXX26_CONSTEXPR
     inline format_to_n_result<_Out>
     format_to_n(_Out __out, iter_difference_t<_Out> __n,
 		wformat_string<_Args...> __fmt, _Args&&... __args)
@@ -5622,6 +5697,7 @@ namespace __format
 
   template<typename... _Args>
     [[nodiscard]]
+    _GLIBCXX26_CONSTEXPR
     inline size_t
     formatted_size(format_string<_Args...> __fmt, _Args&&... __args)
     {
@@ -5634,6 +5710,7 @@ namespace __format
 #ifdef _GLIBCXX_USE_WCHAR_T
   template<typename... _Args>
     [[nodiscard]]
+    _GLIBCXX26_CONSTEXPR
     inline size_t
     formatted_size(wformat_string<_Args...> __fmt, _Args&&... __args)
     {
@@ -5705,6 +5782,7 @@ namespace __format
 namespace __format
 {
   template<typename _CharT, typename _Out, typename _Callback>
+    _GLIBCXX26_CONSTEXPR
     typename basic_format_context<_Out, _CharT>::iterator
     __format_padded(basic_format_context<_Out, _CharT>& __fc,
 		    const _Spec<_CharT>& __spec,
@@ -5950,6 +6028,7 @@ namespace __format
       // We deviate from standard, that declares this as template accepting
       // unconstrained FormatContext type, which seems unimplementable.
       template<typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(__maybe_const_pair& __p,
 	       basic_format_context<_Out, _CharT>& __fc) const
@@ -5977,6 +6056,7 @@ namespace __format
       // We deviate from standard, that declares this as template accepting
       // unconstrained FormatContext type, which seems unimplementable.
       template<typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(__maybe_const_tuple& __t,
 	       basic_format_context<_Out, _CharT>& __fc) const
@@ -6140,6 +6220,7 @@ namespace __format
       template<ranges::input_range _Rg, typename _Out>
 	requires formattable<ranges::range_reference_t<_Rg>, _CharT> &&
 		 same_as<remove_cvref_t<ranges::range_reference_t<_Rg>>, _Tp>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(_Rg&& __rg, basic_format_context<_Out, _CharT>& __fc) const
 	{
@@ -6152,6 +6233,7 @@ namespace __format
 
     private:
       template<ranges::input_range _Rg, typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	_M_format(_Rg& __rg, basic_format_context<_Out, _CharT>& __fc) const
 	{
@@ -6169,6 +6251,7 @@ namespace __format
 
 
       template<ranges::input_range _Rg, typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	_M_format_elems(_Rg& __rg,
 			basic_format_context<_Out, _CharT>& __fc) const
@@ -6268,6 +6351,7 @@ namespace __format
       // We deviate from standard, that declares this as template accepting
       // unconstrained FormatContext type, which seems unimplementable.
       template<typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(__format::__maybe_const_range<_Rg, _CharT>& __rg,
 	       basic_format_context<_Out, _CharT>& __fc) const
