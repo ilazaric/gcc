@@ -4430,7 +4430,7 @@ namespace __format
 	  if constexpr (is_same_v<_Tp, basic_string_view<_CharT>>)
 	    construct_at(&_M_sv, __v);
 	  else
-	  _S_get_set<_Tp>(*this, __v);
+	    _S_get_set<_Tp>(*this, __v);
 	}
       };
 
