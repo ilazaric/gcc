@@ -37,6 +37,12 @@
 // <bits/version.h> must have been included before this header:
 #ifdef __glibcxx_format // C++ >= 20 && HOSTED
 
+#ifdef __glibcxx_constexpr_format // C++ >= 26 && HOSTED && CXX11 strings
+# define _GLIBCXX_CONSTEXPR_FORMAT constexpr
+#else
+# define _GLIBCXX_CONSTEXPR_FORMAT
+#endif
+
 #include <concepts>
 #include <type_traits>
 #if __glibcxx_format_ranges // C++ >= 23 && HOSTED
