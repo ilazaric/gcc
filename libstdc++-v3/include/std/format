@@ -2544,7 +2544,7 @@ namespace __format
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(const void* __v, basic_format_context<_Out, _CharT>& __fc) const
 	{
-	  auto __u = reinterpret_cast<__UINTPTR_TYPE__>(__v);
+	  auto __u = __v ? reinterpret_cast<__UINTPTR_TYPE__>(__v) : (__UINTPTR_TYPE__)0;
 	  char __buf[2 + sizeof(__v) * 2];
 	  auto [__ptr, __ec] = std::to_chars(__buf + 2, std::end(__buf),
 					     __u, 16);
@@ -4342,68 +4342,69 @@ namespace __format
 	[[__gnu__::__always_inline__]]
         _GLIBCXX26_CONSTEXPR
 	static auto&
-	_S_get(_Self& __u) noexcept
+        _S_get_set(_Self& __u, auto... __value) noexcept
 	{
 	  if constexpr (is_same_v<_Tp, bool>)
-	    return __u._M_bool;
+	    return (__u._M_bool = ... = __value);
 	  else if constexpr (is_same_v<_Tp, _CharT>)
-	    return __u._M_c;
+	    return (__u._M_c = ... = __value);
 	  else if constexpr (is_same_v<_Tp, int>)
-	    return __u._M_i;
+	    return (__u._M_i = ... = __value);
 	  else if constexpr (is_same_v<_Tp, unsigned>)
-	    return __u._M_u;
+	    return (__u._M_u = ... = __value);
 	  else if constexpr (is_same_v<_Tp, long long>)
-	    return __u._M_ll;
+	    return (__u._M_ll = ... = __value);
 	  else if constexpr (is_same_v<_Tp, unsigned long long>)
-	    return __u._M_ull;
+	    return (__u._M_ull = ... = __value);
 	  else if constexpr (is_same_v<_Tp, float>)
-	    return __u._M_flt;
+	    return (__u._M_flt = ... = __value);
 	  else if constexpr (is_same_v<_Tp, double>)
-	    return __u._M_dbl;
+	    return (__u._M_dbl = ... = __value);
 #ifndef _GLIBCXX_LONG_DOUBLE_ALT128_COMPAT
 	  else if constexpr (is_same_v<_Tp, long double>)
-	    return __u._M_ldbl;
+	    return (__u._M_ldbl = ... = __value);
 #else
 	  else if constexpr (is_same_v<_Tp, __ibm128>)
-	    return __u._M_ibm128;
+	    return (__u._M_ibm128 = ... = __value);
 	  else if constexpr (is_same_v<_Tp, __ieee128>)
-	    return __u._M_ieee128;
+	    return (__u._M_ieee128 = ... = __value);
 #endif
 #ifdef __SIZEOF_FLOAT128__
 	  else if constexpr (is_same_v<_Tp, __float128>)
-	    return __u._M_float128;
+	    return (__u._M_float128 = ... = __value);
 #endif
 	  else if constexpr (is_same_v<_Tp, const _CharT*>)
-	    return __u._M_str;
+	    return (__u._M_str = ... = __value);
 	  else if constexpr (is_same_v<_Tp, basic_string_view<_CharT>>)
-	    return __u._M_sv;
+	    return (__u._M_sv = ... = __value);
 	  else if constexpr (is_same_v<_Tp, const void*>)
-	    return __u._M_ptr;
+	    return (__u._M_ptr = ... = __value);
 #ifdef __SIZEOF_INT128__
 	  else if constexpr (is_same_v<_Tp, __int128>)
-	    return __u._M_i128;
+	    return (__u._M_i128 = ... = __value);
 	  else if constexpr (is_same_v<_Tp, unsigned __int128>)
-	    return __u._M_u128;
+	    return (__u._M_u128 = ... = __value);
 #endif
 #ifdef __BFLT16_DIG__
 	  else if constexpr (is_same_v<_Tp, __bflt16_t>)
-	    return __u._M_bf16;
+	    return (__u._M_bf16 = ... = __value);
 #endif
 #ifdef __FLT16_DIG__
 	  else if constexpr (is_same_v<_Tp, _Float16>)
-	    return __u._M_f16;
+	    return (__u._M_f16 = ... = __value);
 #endif
 #ifdef __FLT32_DIG__
 	  else if constexpr (is_same_v<_Tp, _Float32>)
-	    return __u._M_f32;
+	    return (__u._M_f32 = ... = __value);
 #endif
 #ifdef __FLT64_DIG__
 	  else if constexpr (is_same_v<_Tp, _Float64>)
-	    return __u._M_f64;
+	    return (__u._M_f64 = ... = __value);
 #endif
 	  else if constexpr (is_same_v<_Tp, _Handle<_Context>>)
-	    return __u._M_handle;
+	    return (__u._M_handle = ... = __value);
 	  // Otherwise, ill-formed.
+	  __builtin_unreachable();
 	}
 
       template<typename _Tp>
@@ -4411,14 +4412,14 @@ namespace __format
 	_GLIBCXX26_CONSTEXPR
 	auto&
 	_M_get() noexcept
-	{ return _S_get<_Tp>(*this); }
+	{ return _S_get_set<_Tp>(*this); }
 
       template<typename _Tp>
 	[[__gnu__::__always_inline__]]
 	_GLIBCXX26_CONSTEXPR
 	const auto&
 	_M_get() const noexcept
-	{ return _S_get<_Tp>(*this); }
+	{ return _S_get_set<_Tp>(*this); }
 
       template<typename _Tp>
 	[[__gnu__::__always_inline__]]
@@ -4426,10 +4427,7 @@ namespace __format
 	void
 	_M_set(_Tp __v) noexcept
 	{
-	  if constexpr (is_same_v<_Tp, _Handle<_Context>>)
-	    std::construct_at(&_M_handle, __v);
-	  else
-	    _S_get<_Tp>(*this) = __v;
+	  _S_get_set<_Tp>(*this, __v);
 	}
       };
 
