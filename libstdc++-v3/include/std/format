@@ -1515,6 +1515,11 @@ namespace __format
       _Spec<_CharT> _M_spec{};
     };
 
+  constexpr int __ivl_toupper(int x) {
+    if (x < 'a' || x > 'z') return x;
+    return x - 'a' + 'A';
+  }
+
   template<__char _CharT>
     struct __formatter_int
     {
@@ -1723,11 +1728,15 @@ namespace __format
 	      __res = to_chars(__start, __end, __u, 16);
 	      if (_M_spec._M_type == _Pres_X)
 		for (auto __p = __start; __p != __res.ptr; ++__p)
+		  if consteval {
+		    *__p = __ivl_toupper(*__p);
+		  } else {
 #if __has_builtin(__builtin_toupper)
-		  *__p = __builtin_toupper(*__p);
+		    *__p = __builtin_toupper(*__p);
 #else
-		  *__p = std::toupper(*__p);
+		    *__p = std::toupper(*__p);
 #endif
+		  }
 	      break;
 	    default:
 	      __builtin_unreachable();
@@ -2556,11 +2565,15 @@ namespace __format
 	    {
 	      __buf[1] = 'X';
 	      for (auto __p = __buf + 2; __p != __ptr; ++__p)
+		if consteval {
+		  *__p = __ivl_toupper(*__p);
+		} else {
 #if __has_builtin(__builtin_toupper)
-		*__p = __builtin_toupper(*__p);
+		  *__p = __builtin_toupper(*__p);
 #else
-		*__p = std::toupper(*__p);
+		  *__p = std::toupper(*__p);
 #endif
+		}
 	    }
 #endif
 
