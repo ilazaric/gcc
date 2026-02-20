@@ -1745,8 +1745,12 @@ namespace __format
 	  if (_M_spec._M_alt && __base_prefix.size())
 	    {
 	      __start -= __base_prefix.size();
-	      __builtin_memcpy(__start, __base_prefix.data(),
-			       __base_prefix.size());
+	      if (!__is_constant_evaluated())
+		__builtin_memcpy(__start, __base_prefix.data(),
+				 __base_prefix.size());
+	      else
+		for (size_t __i = 0; __i < __base_prefix.size(); ++__i)
+		  __start[__i] = __base_prefix.data()[__i];
 	    }
 	  __start = __format::__put_sign(__i, _M_spec._M_sign, __start - 1);
 
@@ -2115,6 +2119,7 @@ namespace __format
       }
 
       template<typename _Fp, typename _Out>
+        _GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(_Fp __v, basic_format_context<_Out, _CharT>& __fc) const
 	{
