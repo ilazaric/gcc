@@ -5559,7 +5559,11 @@ namespace __format
 	if constexpr (sizeof...(_Ts) != 0)
 	  {
 	    using _Parse_ctx = __format::_Scanner<_CharT>::_Parse_context;
-	    auto __arg = static_cast<_Parse_ctx*>(this)->_M_types[__id];
+	    auto __foo = static_cast<_Parse_ctx*>(this);
+	    static_assert(std::is_pointer_v<decltype(__foo->_M_types)>);
+	    auto* __bar = __foo->_M_types;
+	    if (!__bar) return; // formatting scanner
+	    auto __arg = __bar[__id];
 	    __format::_Arg_t __types[] = {
 	      __format::__to_arg_t_enum<_CharT, _Ts>()...
 	    };
