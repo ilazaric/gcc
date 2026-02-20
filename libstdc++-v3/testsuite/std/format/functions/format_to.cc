@@ -1,4 +1,4 @@
-// { dg-do run { target c++20 } }
+// { dg-do run { target c++26 } }
 
 #include <format>
 #include <locale>
@@ -8,9 +8,10 @@
 
 struct punct : std::numpunct<char>
 {
-  std::string do_grouping() const override { return "\2"; }
+  constexpr std::string do_grouping() const override { return "\2"; }
 };
 
+constexpr
 void
 test()
 {
@@ -18,10 +19,12 @@ test()
   auto out = std::format_to(buf, "test");
   VERIFY( out == buf+4 );
 
+  if not consteval {
   std::locale loc({}, new punct);
   auto out2 = std::format_to(buf, loc, "{:Ld}", 12345);
   VERIFY( out2 == buf+7 );
   VERIFY( std::string_view(buf, out2 - buf) == "1,23,45" );
+    }
 }
 
 struct wpunct : std::numpunct<wchar_t>
@@ -50,19 +53,20 @@ struct move_only_iterator
   using difference_type = iterator::difference_type;
   using iterator_category = std::output_iterator_tag;
 
-  move_only_iterator(iterator b) : base_(b) { }
+  constexpr move_only_iterator(iterator b) : base_(b) { }
   move_only_iterator(move_only_iterator&&) = default;
   move_only_iterator& operator=(move_only_iterator&&) = default;
 
-  move_only_iterator& operator++() { ++base_; return *this; }
-  move_only_iterator operator++(int) { auto tmp = *this; ++base_; return tmp; }
+  constexpr move_only_iterator& operator++() { ++base_; return *this; }
+  constexpr move_only_iterator operator++(int) { auto tmp = *this; ++base_; return tmp; }
 
-  decltype(auto) operator*() { return *base_; }
+  constexpr decltype(auto) operator*() { return *base_; }
 
 private:
   iterator base_;
 };
 
+constexpr
 void
 test_move_only()
 {
@@ -72,13 +76,16 @@ test_move_only()
     = std::format_to(std::move(mo), "for{:.3} that{:c}", "matte", (int)'!');
   VERIFY( str == "format that!" );
 
+  if not consteval {
   std::vector<wchar_t> vec;
   move_only_iterator wmo(std::back_inserter(vec));
   [[maybe_unused]] auto wres
     = std::format_to(std::move(wmo), L"for{:.3} hat{:c}", L"matte", (long)L'!');
   VERIFY( std::wstring_view(vec.data(), vec.size()) == L"format hat!" );
+    }
 }
 
+constexpr
 void
 test_pr110917()
 {
@@ -90,10 +97,14 @@ test_pr110917()
   VERIFY( ! std::memcmp(buf, "abc 123", 7) );
 }
 
-int main()
+constexpr
+void all_tests()
 {
   test();
-  test_wchar();
+  if not consteval { test_wchar(); }
   test_move_only();
   test_pr110917();
 }
+
+static_assert((all_tests(), true));
+int main() { all_tests(); }

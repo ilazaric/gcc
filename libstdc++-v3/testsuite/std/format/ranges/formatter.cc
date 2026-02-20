@@ -1,4 +1,4 @@
-// { dg-do run { target c++23 } }
+// { dg-do run { target c++26 } }
 
 #include <flat_map>
 #include <format>
@@ -32,6 +32,7 @@ struct std::formatter<MyVector<T, Formatter>, CharT>
   { return _formatter.parse(pc);  }
 
   template<typename Out>
+  constexpr
   typename std::basic_format_context<Out, CharT>::iterator
   format(const MyVector<T, Formatter>& mv,
 	 std::basic_format_context<Out, CharT>& fc) const
@@ -42,6 +43,7 @@ private:
 };
 
 template<typename CharT, template<typename, typename> class Formatter>
+constexpr
 void
 test_default()
 {
@@ -94,6 +96,7 @@ test_default()
 }
 
 template<typename CharT, template<typename, typename> class Formatter>
+constexpr
 void
 test_override()
 {
@@ -115,14 +118,16 @@ test_override()
 }
 
 template<template<typename, typename> class Formatter>
+constexpr
 void test_outputs()
 {
   test_default<char, Formatter>();
-  test_default<wchar_t, Formatter>();
+  if not consteval { test_default<wchar_t, Formatter>(); }
   test_override<char, Formatter>();
-  test_override<wchar_t, Formatter>();
+  if not consteval { test_override<wchar_t, Formatter>(); }
 }
 
+constexpr
 void
 test_nested()
 {
@@ -152,6 +157,7 @@ struct std::formatter<MyFlatMap, CharT>
   : std::range_formatter<MyFlatMap::reference>
 {};
 
+constexpr
 void test_const_ref_type_mismatch()
 {
   MyFlatMap m{{1, 11}, {2, 22}};
@@ -163,13 +169,15 @@ template<typename T, typename CharT>
 using VectorFormatter = std::formatter<std::vector<T>, CharT>;
 
 template<template<typename> typename Range>
+constexpr
 void test_nonblocking()
 {
   static_assert(!std::enable_nonlocking_formatter_optimization<
 		  Range<int>>);
 }
 
-int main()
+constexpr
+bool all_tests()
 {
   test_outputs<std::range_formatter>();
   test_outputs<VectorFormatter>();
@@ -179,4 +187,8 @@ int main()
   test_nonblocking<std::span>();
   test_nonblocking<std::vector>();
   test_nonblocking<MyVector>();
+  return true;
 }
+
+static_assert(all_tests());
+int main() { all_tests(); }

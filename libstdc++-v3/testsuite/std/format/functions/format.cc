@@ -1,5 +1,5 @@
 // { dg-options "-fexec-charset=UTF-8" }
-// { dg-do run { target c++20 } }
+// { dg-do run { target c++26 } }
 // { dg-add-options no_pch }
 // { dg-additional-options "-DUNICODE" { target 4byte_wchar_t } }
 
@@ -41,6 +41,7 @@
 #include <cstdio>
 #include <testsuite_hooks.h>
 
+constexpr
 void
 test_no_args()
 {
@@ -72,12 +73,13 @@ test_unescaped()
 
 struct brit_punc : std::numpunct<char>
 {
-  std::string do_grouping() const override { return "\3\3"; }
-  char do_thousands_sep() const override { return ','; }
-  std::string do_truename() const override { return "yes mate"; }
-  std::string do_falsename() const override { return "nah bruv"; }
+  constexpr std::string do_grouping() const override { return "\3\3"; }
+  constexpr char do_thousands_sep() const override { return ','; }
+  constexpr std::string do_truename() const override { return "yes mate"; }
+  constexpr std::string do_falsename() const override { return "nah bruv"; }
 };
 
+constexpr
 void
 test_std_examples()
 {
@@ -125,10 +127,12 @@ test_std_examples()
     VERIFY(s0 == "1,+1,1, 1");
     string s1 = format("{0:},{0:+},{0:-},{0: }", -1);
     VERIFY(s1 == "-1,-1,-1,-1");
+    if not consteval {
     string s2 = format("{0:},{0:+},{0:-},{0: }", inf);
     VERIFY(s2 == "inf,+inf,inf, inf");
     string s3 = format("{0:},{0:+},{0:-},{0: }", nan);
     VERIFY(s3 == "nan,+nan,nan, nan");
+      }
   }
 
   // alternate form and zero fill
@@ -143,7 +147,7 @@ test_std_examples()
   }
 
   // integer presentation types
-  {
+  if not consteval {
     // Change global locale so "{:L}" adds digit separators.
     std::locale::global(std::locale({}, new brit_punc));
 
@@ -170,6 +174,7 @@ test_std_examples()
   }
 }
 
+constexpr
 void
 test_alternate_forms()
 {
@@ -180,25 +185,28 @@ test_alternate_forms()
   s = std::format("{0:#b} {0:+#B} {0:#o} {0:#x} {0:+#X} {0: #d}", 0);
   VERIFY( s == "0b0 +0B0 0 0x0 +0X0  0" );
 
-  s = std::format("{0:+#012g} {0:+#014g} {0:+#014g}", 1234.0);
-  VERIFY( s == "+00001234.00 +0000001234.00 +0000001234.00" );
-  s = std::format("{0:+#0{1}g} {0:+#0{2}g} {0:+#0{2}g}", 1234.5, 12, 14);
-  VERIFY( s == "+00001234.50 +0000001234.50 +0000001234.50" );
+  if not consteval {
+      s = std::format("{0:+#012g} {0:+#014g} {0:+#014g}", 1234.0);
+      VERIFY( s == "+00001234.00 +0000001234.00 +0000001234.00" );
+      s = std::format("{0:+#0{1}g} {0:+#0{2}g} {0:+#0{2}g}", 1234.5, 12, 14);
+      VERIFY( s == "+00001234.50 +0000001234.50 +0000001234.50" );
 
-  s = std::format("{:#.2g}", -0.0);
-  VERIFY( s == "-0.0" );
+      s = std::format("{:#.2g}", -0.0);
+      VERIFY( s == "-0.0" );
 
-  // PR libstdc++/108046
-  s = std::format("{0:#.0} {0:#.1} {0:#.0g}", 10.0);
-  VERIFY( s == "1.e+01 1.e+01 1.e+01" );
+      // PR libstdc++/108046
+      s = std::format("{0:#.0} {0:#.1} {0:#.0g}", 10.0);
+      VERIFY( s == "1.e+01 1.e+01 1.e+01" );
 
-  // PR libstdc++/113512
-  s = std::format("{:#.3g}", 0.025);
-  VERIFY( s == "0.0250" );
-  s = std::format("{:#07.3g}", 0.02);
-  VERIFY( s == "00.0200" );
+      // PR libstdc++/113512
+      s = std::format("{:#.3g}", 0.025);
+      VERIFY( s == "0.0250" );
+      s = std::format("{:#07.3g}", 0.02);
+      VERIFY( s == "00.0200" );
+    }
 }
 
+constexpr
 void
 test_infnan()
 {
@@ -213,9 +221,9 @@ test_infnan()
 
 struct euro_punc : std::numpunct<char>
 {
-  std::string do_grouping() const override { return "\3\3"; }
-  char do_thousands_sep() const override { return '.'; }
-  char do_decimal_point() const override { return ','; }
+  constexpr std::string do_grouping() const override { return "\3\3"; }
+  constexpr char do_thousands_sep() const override { return '.'; }
+  constexpr char do_decimal_point() const override { return ','; }
 };
 
 void
@@ -275,6 +283,7 @@ test_locale()
   std::locale::global(cloc);
 }
 
+constexpr
 void
 test_width()
 {
@@ -294,29 +303,32 @@ test_width()
   s = std::format("DR {0:{1}}: allow width {1} from arg-id", 3721, 0);
   VERIFY( s == "DR 3721: allow width 0 from arg-id" );
 
-  try {
-    s = std::format("Negative width is an error: {0:{1}}", 123, -1);
-    VERIFY(false);
-  } catch (const std::format_error&) {
-  }
+  if not consteval {
+      try {
+	s = std::format("Negative width is an error: {0:{1}}", 123, -1);
+	VERIFY(false);
+      } catch (const std::format_error&) {
+      }
 
-  try {
-    bool no = false, yes = true;
-    auto args = std::make_format_args(no, yes);
-    s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
-    VERIFY(false);
-  } catch (const std::format_error&) {
-  }
+      try {
+	bool no = false, yes = true;
+	auto args = std::make_format_args(no, yes);
+	s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
+	VERIFY(false);
+      } catch (const std::format_error&) {
+      }
 
-  try {
-    char wat = '?', bang = '!';
-    auto args = std::make_format_args(wat, bang);
-    s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
-    VERIFY(false);
-  } catch (const std::format_error&) {
-  }
+      try {
+	char wat = '?', bang = '!';
+	auto args = std::make_format_args(wat, bang);
+	s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
+	VERIFY(false);
+      } catch (const std::format_error&) {
+      }
+    }
 }
 
+constexpr
 void
 test_char()
 {
@@ -395,6 +407,7 @@ test_wchar()
   VERIFY( ws == L"0.5" );
 }
 
+constexpr
 void
 test_minmax()
 {
@@ -422,6 +435,7 @@ test_minmax()
 #endif
 }
 
+constexpr
 void
 test_p1652r1() // printf corner cases in std::format
 {
@@ -436,6 +450,7 @@ test_p1652r1() // printf corner cases in std::format
   s = std::format("{:c}", c);
   VERIFY( s == "A" );
 
+  if not consteval {
   // Problem 3: "-000nan" is not a floating point value
   double nan = std::numeric_limits<double>::quiet_NaN();
   try {
@@ -443,19 +458,23 @@ test_p1652r1() // printf corner cases in std::format
     VERIFY( false );
   } catch (const std::format_error&) {
   }
-
+  
   s = std::format("{:06}", nan);
   VERIFY( s == "   nan" );
+    }
 
   // Problem 4: bool needs a type format specifier
   s = std::format("{:s}", true);
   VERIFY( s == "true" );
 
+  if not consteval {
   // Problem 5: double does not roundtrip float
   s = std::format("{}", 3.31f);
   VERIFY( s == "3.31" );
+    }
 }
 
+constexpr
 void
 test_pointer()
 {
@@ -477,6 +496,7 @@ test_pointer()
   s = std::format("{:o<4},{:o>5},{:o^7}", p, pc, nullptr); // fill+align+width
   VERIFY( s == "0x0o,oo0x0,oo0x0oo" );
 
+  if not consteval {
   pc = p = &s;
   str_int = std::format("{:#x}", reinterpret_cast<std::uintptr_t>(p));
   s = std::format("{} {} {}", p, pc, nullptr);
@@ -496,8 +516,10 @@ test_pointer()
   s = std::format("{:016P} {:016P}", p, pc);
   VERIFY( s == (str_int + ' ' + str_int) );
 #endif
+    }
 }
 
+constexpr
 void
 test_bool()
 {
@@ -519,6 +541,7 @@ test_bool()
   VERIFY( s == "0 0x1 0X0" );
 }
 
+constexpr
 void
 test_unicode()
 {
@@ -579,19 +602,23 @@ test_unicode()
 #endif
 }
 
-int main()
+constexpr
+void all_tests()
 {
   test_no_args();
-  test_unescaped();
+  if not consteval { test_unescaped(); }
   test_std_examples();
   test_alternate_forms();
-  test_locale();
+  if not consteval { test_locale(); }
   test_width();
   test_char();
-  test_wchar();
+  if not consteval { test_wchar(); }
   test_minmax();
   test_p1652r1();
   test_pointer();
   test_bool();
   test_unicode();
 }
+
+static_assert((all_tests(), true));
+int main() { all_tests(); }

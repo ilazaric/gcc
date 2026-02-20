@@ -1,4 +1,4 @@
-// { dg-do run { target c++23 } }
+// { dg-do run { target c++26 } }
 
 #include <deque>
 #include <flat_map>
@@ -64,6 +64,7 @@ struct CustFormat : std::vector<T>
 template<typename T, std::range_format rf>
 constexpr auto std::format_kind<CustFormat<T, rf>> = rf;
 
+constexpr
 void test_override()
 {
   CustFormat<int, std::range_format::disabled> disabledf;
@@ -89,6 +90,8 @@ void test_override()
   // Support precision as string do
   VERIFY( std::format("{:.3}", debugf) == R"("ab)" );
 }
+
+static_assert((test_override(), true));
 
 int main()
 {

@@ -1,5 +1,5 @@
-// { dg-do run { target c++23 } }
-// { dg-options "-fexec-charset=UTF-8" }
+// { dg-do run { target c++26 } }
+// { dg-options "-fexec-charset=UTF-8 -fconstexpr-ops-limit=5000000000" }
 // { dg-timeout-factor 2 }
 
 #include <array>
@@ -19,6 +19,7 @@ static_assert(!std::formattable<std::vector<NotFormattable>, char>);
 static_assert(!std::formattable<std::span<NotFormattable>, wchar_t>);
 
 template<typename... Args>
+constexpr
 bool
 is_format_string_for(const char* str, Args&&... args)
 {
@@ -31,6 +32,7 @@ is_format_string_for(const char* str, Args&&... args)
 }
 
 template<typename... Args>
+constexpr
 bool
 is_format_string_for(const wchar_t* str, Args&&... args)
 {
@@ -43,6 +45,7 @@ is_format_string_for(const wchar_t* str, Args&&... args)
 }
 
 template<typename Rg, typename CharT>
+constexpr
 bool is_range_formatter_spec_for(CharT const* spec, Rg&& rg)
 {
   using V = std::remove_cvref_t<std::ranges::range_reference_t<Rg>>;
@@ -56,29 +59,34 @@ bool is_range_formatter_spec_for(CharT const* spec, Rg&& rg)
   }
 }
 
+constexpr
 void
 test_format_string()
 {
-  // invalid format spec 'p'
-  VERIFY( !is_range_formatter_spec_for("p", std::vector<int>()) );
-  VERIFY( !is_format_string_for("{:p}", std::vector<int>()) );
-  VERIFY( !is_range_formatter_spec_for("np", std::vector<int>()) );
-  VERIFY( !is_format_string_for("{:np}", std::vector<int>()) );
+  if not consteval
+    {
+      // invalid format spec 'p'
+      VERIFY( !is_range_formatter_spec_for("p", std::vector<int>()) );
+      VERIFY( !is_format_string_for("{:p}", std::vector<int>()) );
+      VERIFY( !is_range_formatter_spec_for("np", std::vector<int>()) );
+      VERIFY( !is_format_string_for("{:np}", std::vector<int>()) );
 
-  // width needs to be integer type
-  VERIFY( !is_format_string_for("{:{}}", std::vector<int>(), 1.0f) );
+      // width needs to be integer type
+      VERIFY( !is_format_string_for("{:{}}", std::vector<int>(), 1.0f) );
 
-  // element format needs to be valid
-  VERIFY( !is_range_formatter_spec_for(":p", std::vector<int>()) );
-  VERIFY( !is_format_string_for("{::p}", std::vector<int>()) );
-  VERIFY( !is_range_formatter_spec_for("n:p", std::vector<int>()) );
-  VERIFY( !is_format_string_for("{:n:p}", std::vector<int>()) );
+      // element format needs to be valid
+      VERIFY( !is_range_formatter_spec_for(":p", std::vector<int>()) );
+      VERIFY( !is_format_string_for("{::p}", std::vector<int>()) );
+      VERIFY( !is_range_formatter_spec_for("n:p", std::vector<int>()) );
+      VERIFY( !is_format_string_for("{:n:p}", std::vector<int>()) );
+    }
 }
 
 #define WIDEN_(C, S) ::std::__format::_Widen<C>(S, L##S)
 #define WIDEN(S) WIDEN_(CharT, S)
 
 template<typename CharT, typename Range, typename Storage>
+constexpr
 void test_output()
 {
   using Sv = std::basic_string_view<CharT>;
@@ -153,25 +161,28 @@ void test_output()
 }
 
 template<typename Cont>
+constexpr
 void test_output_cont()
 {
   test_output<char, Cont&, Cont>();
-  test_output<wchar_t, Cont const&, Cont>();
+  if not consteval { test_output<wchar_t, Cont const&, Cont>(); }
 }
 
 template<typename View>
+constexpr
 void test_output_view()
 {
   test_output<char, View, int[3]>();
-  test_output<wchar_t, View, int[3]>();
+  if not consteval { test_output<wchar_t, View, int[3]>(); }
 }
 
+constexpr
 void
 test_outputs()
 {
   using namespace __gnu_test;
   test_output_cont<std::vector<int>>();
-  test_output_cont<std::list<int>>();
+  if not consteval { test_output_cont<std::list<int>>(); }
   test_output_cont<std::array<int, 3>>();
 
   test_output_view<std::span<int>>();
@@ -185,6 +196,7 @@ test_outputs()
   test_output_view<test_forward_range<const int>>();
 }
 
+constexpr
 void
 test_nested()
 {
@@ -201,6 +213,7 @@ test_nested()
   VERIFY( res == "+[01, 02, 11, 12]+" );
 }
 
+constexpr
 bool strip_quote(std::string_view& v)
 {
   if (!v.starts_with('"'))
@@ -209,6 +222,7 @@ bool strip_quote(std::string_view& v)
   return true;
 }
 
+constexpr
 bool strip_prefix(std::string_view& v, std::string_view expected, bool quoted = false)
 {
   if (quoted && !strip_quote(v))
@@ -221,6 +235,7 @@ bool strip_prefix(std::string_view& v, std::string_view expected, bool quoted = 
   return true;
 }
 
+constexpr
 bool strip_squares(std::string_view& v)
 {
   if (!v.starts_with('[') || !v.ends_with(']'))
@@ -230,6 +245,7 @@ bool strip_squares(std::string_view& v)
   return true;
 }
 
+constexpr
 bool strip_prefix(std::string_view& v, size_t n, char c)
 {
   size_t pos = v.find_first_not_of(c);
@@ -241,6 +257,7 @@ bool strip_prefix(std::string_view& v, size_t n, char c)
   return true;
 }
 
+constexpr
 void test_padding()
 {
   std::string res;
@@ -323,10 +340,15 @@ void test_padding()
   VERIFY( check_elems(resv, false) );
 }
 
-int main()
+constexpr
+bool all_tests()
 {
   test_format_string();
   test_outputs();
   test_nested();
   test_padding();
+  return true;
 }
+
+static_assert(all_tests());
+int main() { all_tests(); }

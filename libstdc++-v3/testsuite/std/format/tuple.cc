@@ -23,8 +23,6 @@ is_format_string_for(const char* str, Args&&... args)
     (void) std::vformat(str, std::make_format_args(args...));
     return true;
   } catch (const std::format_error&) {
-    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=124145
-    throw std::runtime_error("compiler bug, can't test this atm");
     return false;
   }
 }
@@ -38,8 +36,6 @@ is_format_string_for(const wchar_t* str, Args&&... args)
     (void) std::vformat(str, std::make_wformat_args(args...));
     return true;
   } catch (const std::format_error&) {
-    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=124145
-    throw std::runtime_error("compiler bug, can't test this atm");
     return false;
   }
 }
@@ -47,28 +43,33 @@ is_format_string_for(const wchar_t* str, Args&&... args)
 #define WIDEN_(C, S) ::std::__format::_Widen<C>(S, L##S)
 #define WIDEN(S) WIDEN_(CharT, S)
 
+constexpr
 void
 test_format_string()
 {
-  // invalid format stringss
-  VERIFY( !is_format_string_for("{:p}", std::tuple<>()) );
-  VERIFY( !is_format_string_for("{:nm}", std::tuple<>()) );
+  if not consteval
+    { // PR124145
+      // invalid format stringss
+      VERIFY( !is_format_string_for("{:p}", std::tuple<>()) );
+      VERIFY( !is_format_string_for("{:nm}", std::tuple<>()) );
 
-  // 'm' is only valid for 2 elemenst
-  VERIFY( !is_format_string_for("{:m}", std::tuple<>()) );
-  VERIFY( !is_format_string_for("{:m}", std::tuple<int, int, int>()) );
+      // 'm' is only valid for 2 elemenst
+      VERIFY( !is_format_string_for("{:m}", std::tuple<>()) );
+      VERIFY( !is_format_string_for("{:m}", std::tuple<int, int, int>()) );
 
-  // element specifier is not supported
-  VERIFY( !is_format_string_for("{::}", std::tuple<>()) );
+      // element specifier is not supported
+      VERIFY( !is_format_string_for("{::}", std::tuple<>()) );
 
-  // precision is not supported
-  VERIFY( !is_format_string_for("{:.10}", std::tuple<>()) );
+      // precision is not supported
+      VERIFY( !is_format_string_for("{:.10}", std::tuple<>()) );
 
-  // width needs to be integer type
-  VERIFY( !is_format_string_for("{:{}}", std::tuple<>(), 1.0f) );
+      // width needs to be integer type
+      VERIFY( !is_format_string_for("{:{}}", std::tuple<>(), 1.0f) );
+    }
 }
 
 template<typename CharT>
+// not constexpr because it formats floats
 void test_multi()
 {
   using Sv = std::basic_string_view<CharT>;
@@ -242,7 +243,10 @@ template<typename CharT>
 constexpr
 void test_outputs()
 {
-  // test_multi<CharT>(); // floats
+  if not consteval
+    { // floats
+      test_multi<CharT>();
+    }
   test_empty<CharT, std::tuple<>>();
   test_pair_e<CharT, std::pair>();
   test_pair_e<CharT, std::tuple>();
@@ -394,16 +398,25 @@ void test_nonblocking()
 		  Tuple<Custom&, float&>>);
 }
 
-consteval
+constexpr bool all_tests()
 {
-  // test_format_string(); // throws
+  test_format_string();
   test_outputs<char>();
-  // test_outputs<wchar_t>(); // wchar_t impl uses __builtin_alloca
+  if not consteval
+    {
+      test_outputs<wchar_t>(); // wchar_t impl uses __builtin_alloca
+    }
   test_nested();
   test_padding();
 
   test_nonblocking<std::pair>();
   test_nonblocking<std::tuple>();
+
+  return true;
 }
 
-int main() {}
+static_assert(all_tests());
+
+int main() {
+  all_tests();
+}
