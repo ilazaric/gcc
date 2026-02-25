@@ -2569,7 +2569,10 @@ namespace __format
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(const void* __v, basic_format_context<_Out, _CharT>& __fc) const
 	{
-	  auto __u = __v ? reinterpret_cast<__UINTPTR_TYPE__>(__v) : (__UINTPTR_TYPE__)0;
+	  // Treating nullptr specially to enable constexpr formatting of nullptr_t.
+	  auto __u = __v
+	    ? reinterpret_cast<__UINTPTR_TYPE__>(__v)
+	    : (__UINTPTR_TYPE__)0;
 	  char __buf[2 + sizeof(__v) * 2];
 	  auto [__ptr, __ec] = std::to_chars(__buf + 2, std::end(__buf),
 					     __u, 16);
@@ -5468,7 +5471,8 @@ namespace __format
 		      const char* __chars[] = { "false", "true" };
 		      if (auto __res = __out._M_reserve(__len))
 			{
-			  __format::__memcpy(__res.get(), __chars[__arg], __len);
+			  __format::__memcpy(__res.get(), __chars[__arg],
+					     __len);
 			  __res._M_bump(__len);
 			  __done = true;
 			}
@@ -5506,7 +5510,8 @@ namespace __format
 		      string_view __sv = __arg;
 		      if (auto __res = __out._M_reserve(__sv.size()))
 			{
-			  __format::__memcpy(__res.get(), __sv.data(), __sv.size());
+			  __format::__memcpy(__res.get(), __sv.data(),
+					     __sv.size());
 			  __res._M_bump(__sv.size());
 			  __done = true;
 			}
