@@ -355,7 +355,7 @@ test_char()
   VERIFY( s == "11110000 11110000 240 360 f0 F0" );
 }
 
-// should be somewhat constexpr, not yet implemented
+// constexpr wide formatting not yet implemented
 void
 test_wchar()
 {
@@ -446,27 +446,27 @@ test_p1652r1() // printf corner cases in std::format
   VERIFY( s == "A" );
 
   if not consteval {
-  // Problem 3: "-000nan" is not a floating point value
-  double nan = std::numeric_limits<double>::quiet_NaN();
-  try {
-    s = std::vformat("{:0=6}", std::make_format_args(nan));
-    VERIFY( false );
-  } catch (const std::format_error&) {
-  }
-  
-  s = std::format("{:06}", nan);
-  VERIFY( s == "   nan" );
+    // Problem 3: "-000nan" is not a floating point value
+    double nan = std::numeric_limits<double>::quiet_NaN();
+    try {
+      s = std::vformat("{:0=6}", std::make_format_args(nan));
+      VERIFY( false );
+    } catch (const std::format_error&) {
     }
+  
+    s = std::format("{:06}", nan);
+    VERIFY( s == "   nan" );
+  }
 
   // Problem 4: bool needs a type format specifier
   s = std::format("{:s}", true);
   VERIFY( s == "true" );
 
   if not consteval {
-  // Problem 5: double does not roundtrip float
-  s = std::format("{}", 3.31f);
-  VERIFY( s == "3.31" );
-    }
+    // Problem 5: double does not roundtrip float
+    s = std::format("{}", 3.31f);
+    VERIFY( s == "3.31" );
+  }
 }
 
 constexpr void
@@ -491,30 +491,29 @@ test_pointer()
   VERIFY( s == "0x0o,oo0x0,oo0x0oo" );
 
   if not consteval {
-  pc = p = &s;
-  str_int = std::format("{:#x}", reinterpret_cast<std::uintptr_t>(p));
-  s = std::format("{} {} {}", p, pc, nullptr);
-  VERIFY( s == (str_int + ' ' + str_int + " 0x0") );
-  str_int = std::format("{:#20x}", reinterpret_cast<std::uintptr_t>(p));
-  s = std::format("{:20} {:20p}", p, pc);
-  VERIFY( s == (str_int + ' ' + str_int) );
+    pc = p = &s;
+    str_int = std::format("{:#x}", reinterpret_cast<std::uintptr_t>(p));
+    s = std::format("{} {} {}", p, pc, nullptr);
+    VERIFY( s == (str_int + ' ' + str_int + " 0x0") );
+    str_int = std::format("{:#20x}", reinterpret_cast<std::uintptr_t>(p));
+    s = std::format("{:20} {:20p}", p, pc);
+    VERIFY( s == (str_int + ' ' + str_int) );
 
 #if __cpp_lib_format >= 202304L
-  // P2510R3 Formatting pointers
-  s = std::format("{:06} {:07P} {:08p}", (void*)0, (const void*)0, nullptr);
-  VERIFY( s == "0x0000 0X00000 0x000000" );
-  str_int = std::format("{:#016x}", reinterpret_cast<std::uintptr_t>(p));
-  s = std::format("{:016} {:016}", p, pc);
-  VERIFY( s == (str_int + ' ' + str_int) );
-  str_int = std::format("{:#016X}", reinterpret_cast<std::uintptr_t>(p));
-  s = std::format("{:016P} {:016P}", p, pc);
-  VERIFY( s == (str_int + ' ' + str_int) );
+    // P2510R3 Formatting pointers
+    s = std::format("{:06} {:07P} {:08p}", (void*)0, (const void*)0, nullptr);
+    VERIFY( s == "0x0000 0X00000 0x000000" );
+    str_int = std::format("{:#016x}", reinterpret_cast<std::uintptr_t>(p));
+    s = std::format("{:016} {:016}", p, pc);
+    VERIFY( s == (str_int + ' ' + str_int) );
+    str_int = std::format("{:#016X}", reinterpret_cast<std::uintptr_t>(p));
+    s = std::format("{:016P} {:016P}", p, pc);
+    VERIFY( s == (str_int + ' ' + str_int) );
 #endif
-    }
+  }
 }
 
-constexpr
-void
+constexpr void
 test_bool()
 {
   std::string s;
