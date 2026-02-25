@@ -8,11 +8,10 @@
 
 struct punct : std::numpunct<char>
 {
-  constexpr std::string do_grouping() const override { return "\2"; }
+  std::string do_grouping() const override { return "\2"; }
 };
 
-constexpr
-void
+constexpr void
 test()
 {
   char buf[32] = { };
@@ -20,11 +19,11 @@ test()
   VERIFY( out == buf+4 );
 
   if not consteval {
-  std::locale loc({}, new punct);
-  auto out2 = std::format_to(buf, loc, "{:Ld}", 12345);
-  VERIFY( out2 == buf+7 );
-  VERIFY( std::string_view(buf, out2 - buf) == "1,23,45" );
-    }
+    std::locale loc({}, new punct);
+    auto out2 = std::format_to(buf, loc, "{:Ld}", 12345);
+    VERIFY( out2 == buf+7 );
+    VERIFY( std::string_view(buf, out2 - buf) == "1,23,45" );
+  }
 }
 
 struct wpunct : std::numpunct<wchar_t>
@@ -32,6 +31,7 @@ struct wpunct : std::numpunct<wchar_t>
   std::string do_grouping() const override { return "\2"; }
 };
 
+// constexpr wide formatting not yet implemented
 void
 test_wchar()
 {
@@ -66,8 +66,7 @@ private:
   iterator base_;
 };
 
-constexpr
-void
+constexpr void
 test_move_only()
 {
   std::string str;
@@ -77,16 +76,15 @@ test_move_only()
   VERIFY( str == "format that!" );
 
   if not consteval {
-  std::vector<wchar_t> vec;
-  move_only_iterator wmo(std::back_inserter(vec));
-  [[maybe_unused]] auto wres
-    = std::format_to(std::move(wmo), L"for{:.3} hat{:c}", L"matte", (long)L'!');
-  VERIFY( std::wstring_view(vec.data(), vec.size()) == L"format hat!" );
-    }
+    std::vector<wchar_t> vec;
+    move_only_iterator wmo(std::back_inserter(vec));
+    [[maybe_unused]] auto wres
+      = std::format_to(std::move(wmo), L"for{:.3} hat{:c}", L"matte", (long)L'!');
+    VERIFY( std::wstring_view(vec.data(), vec.size()) == L"format hat!" );
+  }
 }
 
-constexpr
-void
+constexpr void
 test_pr110917()
 {
   // PR libstdc++/110917
@@ -97,14 +95,22 @@ test_pr110917()
   VERIFY( ! std::memcmp(buf, "abc 123", 7) );
 }
 
-constexpr
-void all_tests()
+constexpr bool
+all_tests()
 {
   test();
-  if not consteval { test_wchar(); }
   test_move_only();
   test_pr110917();
+  
+  if not consteval {
+    test_wchar();
+  }
+
+  return true;
 }
 
-static_assert((all_tests(), true));
+#ifdef __cpp_lib_constexpr_format
+static_assert(all_tests());
+#endif
+
 int main() { all_tests(); }
