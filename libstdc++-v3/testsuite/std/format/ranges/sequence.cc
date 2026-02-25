@@ -19,8 +19,7 @@ static_assert(!std::formattable<std::vector<NotFormattable>, char>);
 static_assert(!std::formattable<std::span<NotFormattable>, wchar_t>);
 
 template<typename... Args>
-constexpr
-bool
+constexpr bool
 is_format_string_for(const char* str, Args&&... args)
 {
   try {
@@ -32,8 +31,7 @@ is_format_string_for(const char* str, Args&&... args)
 }
 
 template<typename... Args>
-constexpr
-bool
+constexpr bool
 is_format_string_for(const wchar_t* str, Args&&... args)
 {
   try {
@@ -45,8 +43,8 @@ is_format_string_for(const wchar_t* str, Args&&... args)
 }
 
 template<typename Rg, typename CharT>
-constexpr
-bool is_range_formatter_spec_for(CharT const* spec, Rg&& rg)
+constexpr bool
+is_range_formatter_spec_for(CharT const* spec, Rg&& rg)
 {
   using V = std::remove_cvref_t<std::ranges::range_reference_t<Rg>>;
   std::range_formatter<V, CharT> fmt;
@@ -59,35 +57,32 @@ bool is_range_formatter_spec_for(CharT const* spec, Rg&& rg)
   }
 }
 
-constexpr
+// not constexpr because of PR124145
 void
 test_format_string()
 {
-  if not consteval
-    {
-      // invalid format spec 'p'
-      VERIFY( !is_range_formatter_spec_for("p", std::vector<int>()) );
-      VERIFY( !is_format_string_for("{:p}", std::vector<int>()) );
-      VERIFY( !is_range_formatter_spec_for("np", std::vector<int>()) );
-      VERIFY( !is_format_string_for("{:np}", std::vector<int>()) );
+  // invalid format spec 'p'
+  VERIFY( !is_range_formatter_spec_for("p", std::vector<int>()) );
+  VERIFY( !is_format_string_for("{:p}", std::vector<int>()) );
+  VERIFY( !is_range_formatter_spec_for("np", std::vector<int>()) );
+  VERIFY( !is_format_string_for("{:np}", std::vector<int>()) );
 
-      // width needs to be integer type
-      VERIFY( !is_format_string_for("{:{}}", std::vector<int>(), 1.0f) );
+  // width needs to be integer type
+  VERIFY( !is_format_string_for("{:{}}", std::vector<int>(), 1.0f) );
 
-      // element format needs to be valid
-      VERIFY( !is_range_formatter_spec_for(":p", std::vector<int>()) );
-      VERIFY( !is_format_string_for("{::p}", std::vector<int>()) );
-      VERIFY( !is_range_formatter_spec_for("n:p", std::vector<int>()) );
-      VERIFY( !is_format_string_for("{:n:p}", std::vector<int>()) );
-    }
+  // element format needs to be valid
+  VERIFY( !is_range_formatter_spec_for(":p", std::vector<int>()) );
+  VERIFY( !is_format_string_for("{::p}", std::vector<int>()) );
+  VERIFY( !is_range_formatter_spec_for("n:p", std::vector<int>()) );
+  VERIFY( !is_format_string_for("{:n:p}", std::vector<int>()) );
 }
 
 #define WIDEN_(C, S) ::std::__format::_Widen<C>(S, L##S)
 #define WIDEN(S) WIDEN_(CharT, S)
 
 template<typename CharT, typename Range, typename Storage>
-constexpr
-void test_output()
+constexpr void
+test_output()
 {
   using Sv = std::basic_string_view<CharT>;
   using T = std::ranges::range_value_t<Range>;
@@ -161,23 +156,22 @@ void test_output()
 }
 
 template<typename Cont>
-constexpr
-void test_output_cont()
+constexpr void
+test_output_cont()
 {
   test_output<char, Cont&, Cont>();
   if not consteval { test_output<wchar_t, Cont const&, Cont>(); }
 }
 
 template<typename View>
-constexpr
-void test_output_view()
+constexpr void
+test_output_view()
 {
   test_output<char, View, int[3]>();
   if not consteval { test_output<wchar_t, View, int[3]>(); }
 }
 
-constexpr
-void
+constexpr void
 test_outputs()
 {
   using namespace __gnu_test;
@@ -196,8 +190,7 @@ test_outputs()
   test_output_view<test_forward_range<const int>>();
 }
 
-constexpr
-void
+constexpr void
 test_nested()
 {
   std::vector<std::vector<int>> v
@@ -213,8 +206,8 @@ test_nested()
   VERIFY( res == "+[01, 02, 11, 12]+" );
 }
 
-constexpr
-bool strip_quote(std::string_view& v)
+constexpr bool
+strip_quote(std::string_view& v)
 {
   if (!v.starts_with('"'))
     return false;
@@ -222,8 +215,8 @@ bool strip_quote(std::string_view& v)
   return true;
 }
 
-constexpr
-bool strip_prefix(std::string_view& v, std::string_view expected, bool quoted = false)
+constexpr bool
+strip_prefix(std::string_view& v, std::string_view expected, bool quoted = false)
 {
   if (quoted && !strip_quote(v))
     return false;
@@ -235,8 +228,8 @@ bool strip_prefix(std::string_view& v, std::string_view expected, bool quoted = 
   return true;
 }
 
-constexpr
-bool strip_squares(std::string_view& v)
+constexpr bool
+strip_squares(std::string_view& v)
 {
   if (!v.starts_with('[') || !v.ends_with(']'))
     return false;
@@ -245,8 +238,8 @@ bool strip_squares(std::string_view& v)
   return true;
 }
 
-constexpr
-bool strip_prefix(std::string_view& v, size_t n, char c)
+constexpr bool
+strip_prefix(std::string_view& v, size_t n, char c)
 {
   size_t pos = v.find_first_not_of(c);
   if (pos == std::string_view::npos)
@@ -257,8 +250,8 @@ bool strip_prefix(std::string_view& v, size_t n, char c)
   return true;
 }
 
-constexpr
-void test_padding()
+constexpr void
+test_padding()
 {
   std::string res;
   std::string_view resv;
@@ -340,15 +333,22 @@ void test_padding()
   VERIFY( check_elems(resv, false) );
 }
 
-constexpr
-bool all_tests()
+constexpr bool
+all_tests()
 {
-  test_format_string();
   test_outputs();
   test_nested();
   test_padding();
+
+  if not consteval {
+    test_format_string();
+  }
+  
   return true;
 }
 
+#ifdef __cpp_lib_constexpr_format
 static_assert(all_tests());
+#endif
+
 int main() { all_tests(); }

@@ -127,11 +127,11 @@ test_std_examples()
     string s1 = format("{0:},{0:+},{0:-},{0: }", -1);
     VERIFY(s1 == "-1,-1,-1,-1");
     if not consteval {
-    string s2 = format("{0:},{0:+},{0:-},{0: }", inf);
-    VERIFY(s2 == "inf,+inf,inf, inf");
-    string s3 = format("{0:},{0:+},{0:-},{0: }", nan);
-    VERIFY(s3 == "nan,+nan,nan, nan");
-      }
+      string s2 = format("{0:},{0:+},{0:-},{0: }", inf);
+      VERIFY(s2 == "inf,+inf,inf, inf");
+      string s3 = format("{0:},{0:+},{0:-},{0: }", nan);
+      VERIFY(s3 == "nan,+nan,nan, nan");
+    }
   }
 
   // alternate form and zero fill
@@ -204,7 +204,7 @@ test_alternate_forms()
   }
 }
 
-constexpr void
+void
 test_infnan()
 {
   double inf = std::numeric_limits<double>::infinity();
@@ -218,9 +218,9 @@ test_infnan()
 
 struct euro_punc : std::numpunct<char>
 {
-  constexpr std::string do_grouping() const override { return "\3\3"; }
-  constexpr char do_thousands_sep() const override { return '.'; }
-  constexpr char do_decimal_point() const override { return ','; }
+  std::string do_grouping() const override { return "\3\3"; }
+  char do_thousands_sep() const override { return '.'; }
+  char do_decimal_point() const override { return ','; }
 };
 
 void
@@ -299,29 +299,30 @@ test_width()
   s = std::format("DR {0:{1}}: allow width {1} from arg-id", 3721, 0);
   VERIFY( s == "DR 3721: allow width 0 from arg-id" );
 
+  // not constexpr because of PR124145
   if not consteval {
-      try {
-	s = std::format("Negative width is an error: {0:{1}}", 123, -1);
-	VERIFY(false);
-      } catch (const std::format_error&) {
-      }
-
-      try {
-	bool no = false, yes = true;
-	auto args = std::make_format_args(no, yes);
-	s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
-	VERIFY(false);
-      } catch (const std::format_error&) {
-      }
-
-      try {
-	char wat = '?', bang = '!';
-	auto args = std::make_format_args(wat, bang);
-	s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
-	VERIFY(false);
-      } catch (const std::format_error&) {
-      }
+    try {
+      s = std::format("Negative width is an error: {0:{1}}", 123, -1);
+      VERIFY(false);
+    } catch (const std::format_error&) {
     }
+
+    try {
+      bool no = false, yes = true;
+      auto args = std::make_format_args(no, yes);
+      s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
+      VERIFY(false);
+    } catch (const std::format_error&) {
+    }
+
+    try {
+      char wat = '?', bang = '!';
+      auto args = std::make_format_args(wat, bang);
+      s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
+      VERIFY(false);
+    } catch (const std::format_error&) {
+    }
+  }
 }
 
 constexpr void
@@ -354,6 +355,7 @@ test_char()
   VERIFY( s == "11110000 11110000 240 360 f0 F0" );
 }
 
+// should be somewhat constexpr, not yet implemented
 void
 test_wchar()
 {
@@ -617,9 +619,8 @@ all_tests()
   return true;
 }
 
+#ifdef __cpp_lib_constexpr_format
 static_assert(all_tests());
+#endif
 
-int main()
-{
-  all_tests();
-}
+int main() { all_tests(); }
