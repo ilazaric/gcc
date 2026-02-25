@@ -3889,37 +3889,46 @@ namespace __format
     public:
       _GLIBCXX26_CONSTEXPR
       explicit
-      _GLIBCXX26_CONSTEXPR
       _Ptr_sink(_CharT* __ptr, size_t __n = _S_no_limit) noexcept
       : _Sink<_CharT>(_M_buf), _M_max(__n)
       { 
       	if (__n == 0)
 	  return; // Only write to the internal buffer.
-	else if (__n != _S_no_limit)
-	  _M_rebuf(__ptr, __n);
-#if __has_builtin(__builtin_dynamic_object_size)
-	else if (size_t __bytes = __builtin_dynamic_object_size(__ptr, 2))
-	  _M_rebuf(__ptr, __bytes / sizeof(_CharT));
-#endif
-	else
+	if (__n != _S_no_limit)
 	  {
-	    // Avoid forming a pointer to a different memory page.
-	    const auto __off = reinterpret_cast<__UINTPTR_TYPE__>(__ptr) % 1024;
-	    __n = (1024 - __off) / sizeof(_CharT);
-	    if (__n > 0) [[likely]]
-	      _M_rebuf(__ptr, __n);
-	    else // Misaligned/packed buffer of wchar_t?
-	      _M_rebuf(__ptr, 1);
+	    _M_rebuf(__ptr, __n);
+	    return;
 	  }
+	if consteval
+	  {
+	    _M_rebuf(__ptr, 1);
+	    return;
+	  }
+#if __has_builtin(__builtin_dynamic_object_size)
+	if (size_t __bytes = __builtin_dynamic_object_size(__ptr, 2))
+	  {
+	    _M_rebuf(__ptr, __bytes / sizeof(_CharT));
+	    return;
+	  }
+#endif
+	// Avoid forming a pointer to a different memory page.
+	const auto __off = reinterpret_cast<__UINTPTR_TYPE__>(__ptr) % 1024;
+	__n = (1024 - __off) / sizeof(_CharT);
+	if (__n > 0) [[likely]]
+	  _M_rebuf(__ptr, __n);
+	else // Misaligned/packed buffer of wchar_t?
+	  _M_rebuf(__ptr, 1);
       }
 
       template<contiguous_iterator _OutIter>
+	_GLIBCXX26_CONSTEXPR
 	explicit
 	_Ptr_sink(_OutIter __out, iter_difference_t<_OutIter> __n = -1)
 	: _Ptr_sink(std::to_address(__out), _S_trim_max(__n))
 	{ }
 
       template<contiguous_iterator _OutIter>
+	_GLIBCXX26_CONSTEXPR
 	format_to_n_result<_OutIter>
 	_M_finish(_OutIter __first) const
 	{
@@ -4261,6 +4270,7 @@ namespace __format
 			    const _Tp, _Tp>;
 
       template<typename _Tq>
+	_GLIBCXX26_CONSTEXPR
 	static void
 	_S_format(basic_format_parse_context<_CharT>& __parse_ctx,
 		  _Context& __format_ctx, const void* __ptr)
@@ -4274,6 +4284,7 @@ namespace __format
 
       template<typename _Tp>
 	requires (!is_same_v<remove_cv_t<_Tp>, _Handle>)
+	_GLIBCXX26_CONSTEXPR
 	explicit
 	_Handle(_Tp& __val) noexcept
 	: _M_ptr(__builtin_addressof(__val))
@@ -4289,6 +4300,7 @@ namespace __format
       _Handle& operator=(const _Handle&) = default;
 
       [[__gnu__::__always_inline__]]
+      _GLIBCXX26_CONSTEXPR
       void
       format(basic_format_parse_context<_CharT>& __pc, _Context& __fc) const
       { _M_func(__pc, __fc, this->_M_ptr); }
@@ -4447,6 +4459,8 @@ namespace __format
 	{
 	  if constexpr (is_same_v<_Tp, basic_string_view<_CharT>>)
 	    construct_at(&_M_sv, __v);
+	  else if constexpr (is_same_v<_Tp, _Handle<_Context>>)
+	    std::construct_at(&_M_handle, __v);
 	  else
 	    _S_get_set<_Tp>(*this, __v);
 	}
@@ -4689,8 +4703,6 @@ namespace __format
 	  else if constexpr (is_same_v<remove_const_t<_Tp>, char>
 			       && is_same_v<_CharT, wchar_t>)
 	    _M_set(static_cast<_Td>(static_cast<unsigned char>(__v)));
-	  else if constexpr (is_same_v<_Td, handle>)
-	    _M_set(handle::_S_create(__v));
 	  else
 	    _M_set(static_cast<_Td>(__v));
 	}
@@ -4807,7 +4819,7 @@ namespace __format
 	       return std::forward<_Visitor>(__vis)(__val);
 	     else
 	       {
-		 handle __h(handle::_S_create(__val));
+		 handle __h(__val);
 		 return std::forward<_Visitor>(__vis)(__h);
 	       }
 	   }, __type);
@@ -5453,7 +5465,11 @@ namespace __format
 		      const char* __chars[] = { "false", "true" };
 		      if (auto __res = __out._M_reserve(__len))
 			{
-			  __builtin_memcpy(__res.get(), __chars[__arg], __len);
+			  if (!__is_constant_evaluated())
+			    __builtin_memcpy(__res.get(), __chars[__arg], __len);
+			  else
+			    for (size_t __i = 0; __i < __len; ++__i)
+			      __res.get()[__i] = __chars[__arg][__i];
 			  __res._M_bump(__len);
 			  __done = true;
 			}
@@ -5491,7 +5507,11 @@ namespace __format
 		      string_view __sv = __arg;
 		      if (auto __res = __out._M_reserve(__sv.size()))
 			{
-			  __builtin_memcpy(__res.get(), __sv.data(), __sv.size());
+			  if (!__is_constant_evaluated())
+			    __builtin_memcpy(__res.get(), __sv.data(), __sv.size());
+			  else
+			    for (size_t __i = 0; __i < __sv.size(); ++__i)
+			      __res.get()[__i] = __sv[__i];
 			  __res._M_bump(__sv.size());
 			  __done = true;
 			}
