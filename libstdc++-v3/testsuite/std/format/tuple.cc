@@ -395,7 +395,6 @@ test_nonblocking()
 constexpr bool
 all_tests()
 {
-  test_format_string();
   test_outputs<char>();
   test_nested();
   test_padding();
@@ -403,8 +402,9 @@ all_tests()
   test_nonblocking<std::pair>();
   test_nonblocking<std::tuple>();
 
-  // constexpr wide formatting not yet implemented
   if not consteval {
+    test_format_string();
+    // constexpr wide formatting not yet implemented
     test_outputs<wchar_t>();
   }
 
