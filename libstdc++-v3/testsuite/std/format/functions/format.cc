@@ -41,8 +41,7 @@
 #include <cstdio>
 #include <testsuite_hooks.h>
 
-constexpr
-void
+constexpr void
 test_no_args()
 {
   std::string s;
@@ -56,6 +55,7 @@ test_no_args()
   VERIFY( s == "128bpm }" );
 }
 
+// not constexpr because of PR124145
 void
 test_unescaped()
 {
@@ -73,14 +73,13 @@ test_unescaped()
 
 struct brit_punc : std::numpunct<char>
 {
-  constexpr std::string do_grouping() const override { return "\3\3"; }
-  constexpr char do_thousands_sep() const override { return ','; }
-  constexpr std::string do_truename() const override { return "yes mate"; }
-  constexpr std::string do_falsename() const override { return "nah bruv"; }
+  std::string do_grouping() const override { return "\3\3"; }
+  char do_thousands_sep() const override { return ','; }
+  std::string do_truename() const override { return "yes mate"; }
+  std::string do_falsename() const override { return "nah bruv"; }
 };
 
-constexpr
-void
+constexpr void
 test_std_examples()
 {
   using namespace std;
@@ -174,8 +173,7 @@ test_std_examples()
   }
 }
 
-constexpr
-void
+constexpr void
 test_alternate_forms()
 {
   std::string s;
@@ -186,28 +184,27 @@ test_alternate_forms()
   VERIFY( s == "0b0 +0B0 0 0x0 +0X0  0" );
 
   if not consteval {
-      s = std::format("{0:+#012g} {0:+#014g} {0:+#014g}", 1234.0);
-      VERIFY( s == "+00001234.00 +0000001234.00 +0000001234.00" );
-      s = std::format("{0:+#0{1}g} {0:+#0{2}g} {0:+#0{2}g}", 1234.5, 12, 14);
-      VERIFY( s == "+00001234.50 +0000001234.50 +0000001234.50" );
+    s = std::format("{0:+#012g} {0:+#014g} {0:+#014g}", 1234.0);
+    VERIFY( s == "+00001234.00 +0000001234.00 +0000001234.00" );
+    s = std::format("{0:+#0{1}g} {0:+#0{2}g} {0:+#0{2}g}", 1234.5, 12, 14);
+    VERIFY( s == "+00001234.50 +0000001234.50 +0000001234.50" );
 
-      s = std::format("{:#.2g}", -0.0);
-      VERIFY( s == "-0.0" );
+    s = std::format("{:#.2g}", -0.0);
+    VERIFY( s == "-0.0" );
 
-      // PR libstdc++/108046
-      s = std::format("{0:#.0} {0:#.1} {0:#.0g}", 10.0);
-      VERIFY( s == "1.e+01 1.e+01 1.e+01" );
+    // PR libstdc++/108046
+    s = std::format("{0:#.0} {0:#.1} {0:#.0g}", 10.0);
+    VERIFY( s == "1.e+01 1.e+01 1.e+01" );
 
-      // PR libstdc++/113512
-      s = std::format("{:#.3g}", 0.025);
-      VERIFY( s == "0.0250" );
-      s = std::format("{:#07.3g}", 0.02);
-      VERIFY( s == "00.0200" );
-    }
+    // PR libstdc++/113512
+    s = std::format("{:#.3g}", 0.025);
+    VERIFY( s == "0.0250" );
+    s = std::format("{:#07.3g}", 0.02);
+    VERIFY( s == "00.0200" );
+  }
 }
 
-constexpr
-void
+constexpr void
 test_infnan()
 {
   double inf = std::numeric_limits<double>::infinity();
@@ -283,8 +280,7 @@ test_locale()
   std::locale::global(cloc);
 }
 
-constexpr
-void
+constexpr void
 test_width()
 {
   std::string s;
@@ -328,8 +324,7 @@ test_width()
     }
 }
 
-constexpr
-void
+constexpr void
 test_char()
 {
   std::string s;
@@ -407,8 +402,7 @@ test_wchar()
   VERIFY( ws == L"0.5" );
 }
 
-constexpr
-void
+constexpr void
 test_minmax()
 {
   auto check = []<typename T, typename U = std::make_unsigned_t<T>>(T, U = 0) {
@@ -435,8 +429,7 @@ test_minmax()
 #endif
 }
 
-constexpr
-void
+constexpr void
 test_p1652r1() // printf corner cases in std::format
 {
   std::string s;
@@ -474,8 +467,7 @@ test_p1652r1() // printf corner cases in std::format
     }
 }
 
-constexpr
-void
+constexpr void
 test_pointer()
 {
   void* p = nullptr;
@@ -541,8 +533,7 @@ test_bool()
   VERIFY( s == "0 0x1 0X0" );
 }
 
-constexpr
-void
+constexpr void
 test_unicode()
 {
 #ifdef UNICODE
@@ -602,23 +593,33 @@ test_unicode()
 #endif
 }
 
-constexpr
-void all_tests()
+constexpr bool
+all_tests()
 {
   test_no_args();
-  if not consteval { test_unescaped(); }
   test_std_examples();
   test_alternate_forms();
-  if not consteval { test_locale(); }
   test_width();
   test_char();
-  if not consteval { test_wchar(); }
   test_minmax();
   test_p1652r1();
   test_pointer();
   test_bool();
   test_unicode();
+
+  if not consteval {
+    test_unescaped();
+    test_infnan();
+    test_locale();
+    test_wchar();
+  }
+
+  return true;
 }
 
-static_assert((all_tests(), true));
-int main() { all_tests(); }
+static_assert(all_tests());
+
+int main()
+{
+  all_tests();
+}
