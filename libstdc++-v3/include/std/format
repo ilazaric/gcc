@@ -2569,7 +2569,8 @@ namespace __format
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(const void* __v, basic_format_context<_Out, _CharT>& __fc) const
 	{
-	  // Treating nullptr specially to enable constexpr formatting of nullptr_t.
+	  // Treating nullptr specially
+	  // to enable constexpr formatting of nullptr_t.
 	  auto __u = __v
 	    ? reinterpret_cast<__UINTPTR_TYPE__>(__v)
 	    : (__UINTPTR_TYPE__)0;
@@ -4463,10 +4464,10 @@ namespace __format
 	void
 	_M_set(_Tp __v) noexcept
 	{
-	  if constexpr (is_same_v<_Tp, basic_string_view<_CharT>>)
-	    construct_at(&_M_sv, __v);
-	  else if constexpr (is_same_v<_Tp, _Handle<_Context>>)
+	  if constexpr (is_same_v<_Tp, _Handle<_Context>>)
 	    std::construct_at(&_M_handle, __v);
+	  else if constexpr (is_same_v<_Tp, basic_string_view<_CharT>>)
+	    std::construct_at(&_M_sv, __v);
 	  else
 	    _S_get_set<_Tp>(*this, __v);
 	}
