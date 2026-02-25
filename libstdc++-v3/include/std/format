@@ -3196,6 +3196,7 @@ namespace __format
       { return _M_f.parse(__pc); }
 
       template<typename _Out>
+	_GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(const void* __v, basic_format_context<_Out, _CharT>& __fc) const
 	{ return _M_f.format(__v, __fc); }
@@ -3221,6 +3222,7 @@ namespace __format
       { return _M_f.parse(__pc); }
 
       template<typename _Out>
+	_GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(void* __v, basic_format_context<_Out, _CharT>& __fc) const
 	{ return _M_f.format(__v, __fc); }
