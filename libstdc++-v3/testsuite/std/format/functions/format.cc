@@ -622,4 +622,7 @@ all_tests()
 static_assert(all_tests());
 #endif
 
-int main() { all_tests(); }
+int main()
+{
+  all_tests();
+}

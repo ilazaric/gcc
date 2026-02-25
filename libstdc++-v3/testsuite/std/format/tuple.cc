@@ -15,8 +15,7 @@ static_assert( !std::formattable<std::pair<int, NotFormattable>, char> );
 static_assert( !std::formattable<std::tuple<int, NotFormattable, int>, wchar_t> );
 
 template<typename... Args>
-constexpr
-bool
+constexpr bool
 is_format_string_for(const char* str, Args&&... args)
 {
   try {
@@ -28,8 +27,7 @@ is_format_string_for(const char* str, Args&&... args)
 }
 
 template<typename... Args>
-constexpr
-bool
+constexpr bool
 is_format_string_for(const wchar_t* str, Args&&... args)
 {
   try {
@@ -43,33 +41,29 @@ is_format_string_for(const wchar_t* str, Args&&... args)
 #define WIDEN_(C, S) ::std::__format::_Widen<C>(S, L##S)
 #define WIDEN(S) WIDEN_(CharT, S)
 
-constexpr
+// not constexpr because of PR124145
 void
 test_format_string()
 {
-  if not consteval
-    { // PR124145
-      // invalid format stringss
-      VERIFY( !is_format_string_for("{:p}", std::tuple<>()) );
-      VERIFY( !is_format_string_for("{:nm}", std::tuple<>()) );
+  // invalid format stringss
+  VERIFY( !is_format_string_for("{:p}", std::tuple<>()) );
+  VERIFY( !is_format_string_for("{:nm}", std::tuple<>()) );
 
-      // 'm' is only valid for 2 elemenst
-      VERIFY( !is_format_string_for("{:m}", std::tuple<>()) );
-      VERIFY( !is_format_string_for("{:m}", std::tuple<int, int, int>()) );
+  // 'm' is only valid for 2 elemenst
+  VERIFY( !is_format_string_for("{:m}", std::tuple<>()) );
+  VERIFY( !is_format_string_for("{:m}", std::tuple<int, int, int>()) );
 
-      // element specifier is not supported
-      VERIFY( !is_format_string_for("{::}", std::tuple<>()) );
+  // element specifier is not supported
+  VERIFY( !is_format_string_for("{::}", std::tuple<>()) );
 
-      // precision is not supported
-      VERIFY( !is_format_string_for("{:.10}", std::tuple<>()) );
+  // precision is not supported
+  VERIFY( !is_format_string_for("{:.10}", std::tuple<>()) );
 
-      // width needs to be integer type
-      VERIFY( !is_format_string_for("{:{}}", std::tuple<>(), 1.0f) );
-    }
+  // width needs to be integer type
+  VERIFY( !is_format_string_for("{:{}}", std::tuple<>(), 1.0f) );
 }
 
 template<typename CharT>
-// not constexpr because it formats floats
 void test_multi()
 {
   using Sv = std::basic_string_view<CharT>;
@@ -130,8 +124,8 @@ void test_multi()
 }
 
 template<typename CharT, typename Tuple>
-constexpr
-void test_empty()
+constexpr void
+test_empty()
 {
   std::basic_string<CharT> res;
 
@@ -150,8 +144,8 @@ void test_empty()
 }
 
 template<typename CharT, typename Pair>
-constexpr
-void test_pair()
+constexpr void
+test_pair()
 {
   using Ft = std::remove_cvref_t<std::tuple_element_t<0, Pair>>;
   using St = std::remove_cvref_t<std::tuple_element_t<1, Pair>>;
@@ -176,8 +170,8 @@ void test_pair()
 }
 
 template<typename CharT, template<typename, typename> class PairT>
-constexpr
-void test_pair_e()
+constexpr void
+test_pair_e()
 {
   test_pair<CharT, PairT<int, std::basic_string<CharT>>>();
   test_pair<CharT, PairT<int, const CharT*>>();
@@ -217,8 +211,8 @@ private:
 };
 
 template<typename CharT, template<typename, typename> class PairT>
-constexpr
-void test_custom()
+constexpr void
+test_custom()
 {
   std::basic_string<CharT> res;
   MyPair<PairT<int, const CharT*>> c1(1, WIDEN("abc"));
@@ -240,13 +234,13 @@ void test_custom()
 }
 
 template<typename CharT>
-constexpr
-void test_outputs()
+constexpr void
+test_outputs()
 {
-  if not consteval
-    { // floats
-      test_multi<CharT>();
-    }
+  if not consteval {
+    test_multi<CharT>();
+  }
+
   test_empty<CharT, std::tuple<>>();
   test_pair_e<CharT, std::pair>();
   test_pair_e<CharT, std::tuple>();
@@ -254,8 +248,8 @@ void test_outputs()
   test_custom<CharT, std::tuple>();
 }
 
-constexpr
-void test_nested()
+constexpr void
+test_nested()
 {
   std::string res;
   std::tuple<std::tuple<>, std::pair<int, std::string>> tt{{}, {1, "abc"}};
@@ -268,8 +262,8 @@ void test_nested()
   VERIFY( res == R"((): (1, "abc"))" );
 }
 
-constexpr
-bool strip_quote(std::string_view& v)
+constexpr bool
+strip_quote(std::string_view& v)
 {
   if (!v.starts_with('"'))
     return false;
@@ -277,8 +271,8 @@ bool strip_quote(std::string_view& v)
   return true;
 }
 
-constexpr
-bool strip_prefix(std::string_view& v, std::string_view expected, bool quoted = false)
+constexpr bool
+strip_prefix(std::string_view& v, std::string_view expected, bool quoted = false)
 {
   if (quoted && !strip_quote(v))
     return false;
@@ -290,8 +284,8 @@ bool strip_prefix(std::string_view& v, std::string_view expected, bool quoted = 
   return true;
 }
 
-constexpr
-bool strip_parens(std::string_view& v)
+constexpr bool
+strip_parens(std::string_view& v)
 {
   if (!v.starts_with('(') || !v.ends_with(')'))
     return false;
@@ -300,8 +294,8 @@ bool strip_parens(std::string_view& v)
   return true;
 }
 
-constexpr
-bool strip_prefix(std::string_view& v, size_t n, char c)
+constexpr bool
+strip_prefix(std::string_view& v, size_t n, char c)
 {
   size_t pos = v.find_first_not_of(c);
   if (pos == std::string_view::npos)
@@ -312,8 +306,8 @@ bool strip_prefix(std::string_view& v, size_t n, char c)
   return true;
 }
 
-constexpr
-void test_padding()
+constexpr void
+test_padding()
 {
   std::string res;
   std::string_view resv;
@@ -380,8 +374,8 @@ struct std::formatter<Custom, CharT>
 };
 
 template<template<typename...> typename Tuple>
-constexpr
-void test_nonblocking()
+constexpr void
+test_nonblocking()
 {
   static_assert(std::enable_nonlocking_formatter_optimization<
 		  Tuple<int, float>>);
@@ -398,25 +392,30 @@ void test_nonblocking()
 		  Tuple<Custom&, float&>>);
 }
 
-constexpr bool all_tests()
+constexpr bool
+all_tests()
 {
   test_format_string();
   test_outputs<char>();
-  if not consteval
-    {
-      test_outputs<wchar_t>(); // wchar_t impl uses __builtin_alloca
-    }
   test_nested();
   test_padding();
 
   test_nonblocking<std::pair>();
   test_nonblocking<std::tuple>();
 
+  // constexpr wide formatting not yet implemented
+  if not consteval {
+    test_outputs<wchar_t>();
+  }
+
   return true;
 }
 
+#ifdef __cpp_lib_constexpr_format
 static_assert(all_tests());
+#endif
 
-int main() {
+int main()
+{
   all_tests();
 }

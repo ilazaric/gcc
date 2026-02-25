@@ -160,7 +160,9 @@ constexpr void
 test_output_cont()
 {
   test_output<char, Cont&, Cont>();
-  if not consteval { test_output<wchar_t, Cont const&, Cont>(); }
+  if not consteval {
+    test_output<wchar_t, Cont const&, Cont>();
+  }
 }
 
 template<typename View>
@@ -168,7 +170,9 @@ constexpr void
 test_output_view()
 {
   test_output<char, View, int[3]>();
-  if not consteval { test_output<wchar_t, View, int[3]>(); }
+  if not consteval {
+    test_output<wchar_t, View, int[3]>();
+  }
 }
 
 constexpr void
@@ -176,7 +180,11 @@ test_outputs()
 {
   using namespace __gnu_test;
   test_output_cont<std::vector<int>>();
-  if not consteval { test_output_cont<std::list<int>>(); }
+
+  if not consteval {
+    test_output_cont<std::list<int>>();
+  }
+
   test_output_cont<std::array<int, 3>>();
 
   test_output_view<std::span<int>>();
@@ -351,4 +359,7 @@ all_tests()
 static_assert(all_tests());
 #endif
 
-int main() { all_tests(); }
+int main()
+{
+  all_tests();
+}
