@@ -3819,7 +3819,6 @@ namespace __format
       _CharT _M_buf[64]; // Write here after outputting _M_max characters.
 
     protected:
-      _GLIBCXX26_CONSTEXPR
       void
       _M_overflow() override
       {
@@ -3844,7 +3843,6 @@ namespace __format
 	  }
       }
 
-      _GLIBCXX26_CONSTEXPR
       bool
       _M_discarding() const override
       {
@@ -3853,7 +3851,6 @@ namespace __format
 	return false;
       }
 
-      _GLIBCXX26_CONSTEXPR
       typename _Sink<_CharT>::_Reservation
       _M_reserve(size_t __n) final
       {
@@ -3871,7 +3868,6 @@ namespace __format
 
     private:
       template<typename _IterDifference>
-	_GLIBCXX26_CONSTEXPR
 	static size_t
 	_S_trim_max(_IterDifference __max)
 	{
@@ -3885,7 +3881,6 @@ namespace __format
 	}
 
       [[__gnu__::__always_inline__]]
-      _GLIBCXX26_CONSTEXPR
       void
       _M_rebuf(_CharT* __ptr, size_t __total, size_t __inuse = 0)
       {
@@ -3894,7 +3889,6 @@ namespace __format
       }
 
     public:
-      _GLIBCXX26_CONSTEXPR
       explicit
       _Ptr_sink(_CharT* __ptr, size_t __n = _S_no_limit) noexcept
       : _Sink<_CharT>(_M_buf), _M_max(__n)
@@ -3928,14 +3922,12 @@ namespace __format
       }
 
       template<contiguous_iterator _OutIter>
-	_GLIBCXX26_CONSTEXPR
 	explicit
 	_Ptr_sink(_OutIter __out, iter_difference_t<_OutIter> __n = -1)
 	: _Ptr_sink(std::to_address(__out), _S_trim_max(__n))
 	{ }
 
       template<contiguous_iterator _OutIter>
-	_GLIBCXX26_CONSTEXPR
 	format_to_n_result<_OutIter>
 	_M_finish(_OutIter __first) const
 	{
@@ -5530,18 +5522,18 @@ namespace __format
 	  __scanner._M_scan();
 	  return __out;
 	}
-      else if constexpr (__contiguous_char_iter<_CharT, _Out>)
-	{
-	  _Ptr_sink<_CharT> __sink(__out);
-	  __format::__do_vformat_to(__sink.out(), __fmt, __args, __loc);
-	  return std::move(__sink)._M_finish(__out).out;
-	}
-      else
-	{
-	  _Iter_sink<_CharT, _Out> __sink(std::move(__out));
-	  __format::__do_vformat_to(__sink.out(), __fmt, __args, __loc);
-	  return std::move(__sink)._M_finish().out;
-	}
+      else if not consteval {
+	if constexpr (__contiguous_char_iter<_CharT, _Out>)
+	  {
+	    _Ptr_sink<_CharT> __sink(__out);
+	    __format::__do_vformat_to(__sink.out(), __fmt, __args, __loc);
+	    return std::move(__sink)._M_finish(__out).out;
+	  }
+      }
+
+      _Iter_sink<_CharT, _Out> __sink(std::move(__out));
+      __format::__do_vformat_to(__sink.out(), __fmt, __args, __loc);
+      return std::move(__sink)._M_finish().out;
     }
 
   template<typename _Out, typename _CharT>
@@ -5830,48 +5822,41 @@ namespace __format
 /// @cond undocumented
 namespace __format
 {
-#if 1
   template<typename _CharT>
     class _Counting_sink final : public _Ptr_sink<_CharT>
     {
     public:
-      _GLIBCXX26_CONSTEXPR
       _Counting_sink() : _Ptr_sink<_CharT>(nullptr, 0) { }
 
       [[__gnu__::__always_inline__]]
-      _GLIBCXX26_CONSTEXPR
       size_t
       count() const
       { return this->_M_count + this->_M_used().size(); }
     };
-#else
+
   template<typename _CharT>
-    class _Counting_sink : public _Buf_sink<_CharT>
+    class _Counting_constexpr_sink : public _Buf_sink<_CharT>
     {
       size_t _M_count = 0;
 
-      _GLIBCXX26_CONSTEXPR
-      void
+      constexpr void
       _M_overflow() override
       {
-	if (!std::is_constant_evaluated())
-	  _M_count += this->_M_used().size();
+	_M_count += this->_M_used().size();
 	this->_M_rewind();
       }
 
     public:
-      _Counting_sink() = default;
+      _Counting_constexpr_sink() = default;
 
       [[__gnu__::__always_inline__]]
-      _GLIBCXX26_CONSTEXPR
-      size_t
+      constexpr size_t
       count() noexcept
       {
-	_Counting_sink::_M_overflow();
+	_Counting_constexpr_sink::_M_overflow();
 	return _M_count;
       }
     };
-#endif
 } // namespace __format
 /// @endcond
 
@@ -5881,10 +5866,17 @@ namespace __format
     inline size_t
     formatted_size(format_string<_Args...> __fmt, _Args&&... __args)
     {
-      __format::_Counting_sink<char> __buf;
-      std::vformat_to(__buf.out(), __fmt.get(),
-		      std::make_format_args(__args...));
-      return __buf.count();
+      if consteval {
+	__format::_Counting_constexpr_sink<char> __buf;
+	std::vformat_to(__buf.out(), __fmt.get(),
+			std::make_format_args(__args...));
+	return __buf.count();
+      } else {
+	__format::_Counting_sink<char> __buf;
+	std::vformat_to(__buf.out(), __fmt.get(),
+			std::make_format_args(__args...));
+	return __buf.count();
+      }
     }
 
 #ifdef _GLIBCXX_USE_WCHAR_T
@@ -5894,10 +5886,17 @@ namespace __format
     inline size_t
     formatted_size(wformat_string<_Args...> __fmt, _Args&&... __args)
     {
-      __format::_Counting_sink<wchar_t> __buf;
-      std::vformat_to(__buf.out(), __fmt.get(),
-		      std::make_wformat_args(__args...));
-      return __buf.count();
+      if consteval {
+	__format::_Counting_constexpr_sink<wchar_t> __buf;
+	std::vformat_to(__buf.out(), __fmt.get(),
+			std::make_wformat_args(__args...));
+	return __buf.count();
+      } else {
+	__format::_Counting_sink<wchar_t> __buf;
+	std::vformat_to(__buf.out(), __fmt.get(),
+			std::make_wformat_args(__args...));
+	return __buf.count();
+      }
     }
 #endif
 
