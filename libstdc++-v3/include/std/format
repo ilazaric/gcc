@@ -98,6 +98,22 @@ namespace __format
 #define _GLIBCXX_WIDEN_(C, S) ::std::__format::_Widen<C>(S, L##S)
 #define _GLIBCXX_WIDEN(S) _GLIBCXX_WIDEN_(_CharT, S)
 
+  [[__gnu__::__always_inline__]]
+  constexpr char
+  __toupper(char __c)
+  {
+    if consteval {
+      if (__c < 'a' || __c > 'z') return __c;
+      return __c - 'a' + 'A';
+    } else {
+#if __has_builtin(__builtin_toupper)
+      return __builtin_toupper(__c);
+#else
+      return std::toupper(__c);
+#endif
+    }
+  }
+
   // Size for stack located buffer
   template<typename _CharT>
     constexpr size_t __stackbuf_size = 32 * sizeof(void*) / sizeof(_CharT);
@@ -1515,11 +1531,6 @@ namespace __format
       _Spec<_CharT> _M_spec{};
     };
 
-  constexpr int __ivl_toupper(int x) {
-    if (x < 'a' || x > 'z') return x;
-    return x - 'a' + 'A';
-  }
-
   template<__char _CharT>
     struct __formatter_int
     {
@@ -1728,15 +1739,7 @@ namespace __format
 	      __res = to_chars(__start, __end, __u, 16);
 	      if (_M_spec._M_type == _Pres_X)
 		for (auto __p = __start; __p != __res.ptr; ++__p)
-		  if consteval {
-		    *__p = __ivl_toupper(*__p);
-		  } else {
-#if __has_builtin(__builtin_toupper)
-		    *__p = __builtin_toupper(*__p);
-#else
-		    *__p = std::toupper(*__p);
-#endif
-		  }
+		  *__p = __format::__toupper(*__p);
 	      break;
 	    default:
 	      __builtin_unreachable();
@@ -2250,7 +2253,7 @@ namespace __format
 	  if (__upper)
 	    {
 	      for (char* __p = __start; __p != __res.ptr; ++__p)
-		*__p = std::toupper(*__p);
+		*__p = __format::__toupper(*__p);
 	    }
 
 	  bool __have_sign = true;
@@ -2571,15 +2574,7 @@ namespace __format
 	    {
 	      __buf[1] = 'X';
 	      for (auto __p = __buf + 2; __p != __ptr; ++__p)
-		if consteval {
-		  *__p = __ivl_toupper(*__p);
-		} else {
-#if __has_builtin(__builtin_toupper)
-		  *__p = __builtin_toupper(*__p);
-#else
-		  *__p = std::toupper(*__p);
-#endif
-		}
+		*__p = __format::__toupper(*__p);
 	    }
 #endif
 
