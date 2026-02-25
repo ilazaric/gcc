@@ -39,6 +39,7 @@
 #define __glibcxx_want_format_ranges
 #define __glibcxx_want_format_uchar
 #define __glibcxx_want_constexpr_exceptions
+#define __glibcxx_want_constexpr_format
 #include <bits/version.h>
 
 #ifdef __cpp_lib_format // C++ >= 20 && HOSTED
@@ -5834,6 +5835,7 @@ namespace __format
       { return this->_M_count + this->_M_used().size(); }
     };
 
+#ifdef __cpp_lib_constexpr_format // C++ >= 26
   template<typename _CharT>
     class _Counting_constexpr_sink : public _Buf_sink<_CharT>
     {
@@ -5857,6 +5859,7 @@ namespace __format
 	return _M_count;
       }
     };
+#endif
 } // namespace __format
 /// @endcond
 
@@ -5866,17 +5869,21 @@ namespace __format
     inline size_t
     formatted_size(format_string<_Args...> __fmt, _Args&&... __args)
     {
-      if consteval {
-	__format::_Counting_constexpr_sink<char> __buf;
-	std::vformat_to(__buf.out(), __fmt.get(),
-			std::make_format_args(__args...));
-	return __buf.count();
-      } else {
-	__format::_Counting_sink<char> __buf;
-	std::vformat_to(__buf.out(), __fmt.get(),
-			std::make_format_args(__args...));
-	return __buf.count();
-      }
+#ifdef __cpp_lib_constexpr_format // C++ >= 26
+      if consteval
+	{
+	  __format::_Counting_constexpr_sink<char> __buf;
+	  std::vformat_to(__buf.out(), __fmt.get(),
+			  std::make_format_args(__args...));
+	  return __buf.count();
+      } else
+#endif
+	{
+	  __format::_Counting_sink<char> __buf;
+	  std::vformat_to(__buf.out(), __fmt.get(),
+			  std::make_format_args(__args...));
+	  return __buf.count();
+	}
     }
 
 #ifdef _GLIBCXX_USE_WCHAR_T
@@ -5886,17 +5893,22 @@ namespace __format
     inline size_t
     formatted_size(wformat_string<_Args...> __fmt, _Args&&... __args)
     {
-      if consteval {
-	__format::_Counting_constexpr_sink<wchar_t> __buf;
-	std::vformat_to(__buf.out(), __fmt.get(),
-			std::make_wformat_args(__args...));
-	return __buf.count();
-      } else {
-	__format::_Counting_sink<wchar_t> __buf;
-	std::vformat_to(__buf.out(), __fmt.get(),
-			std::make_wformat_args(__args...));
-	return __buf.count();
-      }
+#ifdef __cpp_lib_constexpr_format // C++ >= 26
+      if consteval
+	{
+	  __format::_Counting_constexpr_sink<wchar_t> __buf;
+	  std::vformat_to(__buf.out(), __fmt.get(),
+			  std::make_wformat_args(__args...));
+	  return __buf.count();
+	}
+      else
+#endif
+	{
+	  __format::_Counting_sink<wchar_t> __buf;
+	  std::vformat_to(__buf.out(), __fmt.get(),
+			  std::make_wformat_args(__args...));
+	  return __buf.count();
+	}
     }
 #endif
 
