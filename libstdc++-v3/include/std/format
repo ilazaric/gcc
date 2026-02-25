@@ -4479,7 +4479,6 @@ namespace __format
 
     public:
       using handle = __format::_Handle<_Context>;
-
       [[__gnu__::__always_inline__]]
       _GLIBCXX26_CONSTEXPR
       basic_format_arg() noexcept : _M_type(__format::_Arg_none) { }
@@ -5570,10 +5569,8 @@ namespace __format
 	if constexpr (sizeof...(_Ts) != 0)
 	  {
 	    using _Parse_ctx = __format::_Scanner<_CharT>::_Parse_context;
-	    auto __foo = static_cast<_Parse_ctx*>(this);
-	    static_assert(std::is_pointer_v<decltype(__foo->_M_types)>);
-	    auto* __bar = __foo->_M_types;
-	    if (!__bar) return; // formatting scanner
+	    auto* __types = static_cast<_Parse_ctx*>(this)->_M_types;
+	    if (!__types) return; // formatting scanner
 	    auto __arg = __bar[__id];
 	    __format::_Arg_t __types[] = {
 	      __format::__to_arg_t_enum<_CharT, _Ts>()...
@@ -6232,7 +6229,7 @@ namespace __format
   template<typename _Fp, typename _Sp>
     constexpr bool enable_nonlocking_formatter_optimization<pair<_Fp, _Sp>>
       = enable_nonlocking_formatter_optimization<remove_cvref_t<_Fp>>
-	&& enable_nonlocking_formatter_optimization<remove_cvref_t<_Sp>>;
+        && enable_nonlocking_formatter_optimization<remove_cvref_t<_Sp>>;
 #endif
 
   template<__format::__char _CharT, formattable<_CharT>... _Tps>
