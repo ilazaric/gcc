@@ -1745,12 +1745,13 @@ namespace __format
 	  if (_M_spec._M_alt && __base_prefix.size())
 	    {
 	      __start -= __base_prefix.size();
-	      if (!__is_constant_evaluated())
+	      if consteval {
+		for (size_t __i = 0; __i < __base_prefix.size(); ++__i)
+		  __start[__i] = __base_prefix[__i];
+	      } else {
 		__builtin_memcpy(__start, __base_prefix.data(),
 				 __base_prefix.size());
-	      else
-		for (size_t __i = 0; __i < __base_prefix.size(); ++__i)
-		  __start[__i] = __base_prefix.data()[__i];
+	      }
 	    }
 	  __start = __format::__put_sign(__i, _M_spec._M_sign, __start - 1);
 
@@ -5465,11 +5466,12 @@ namespace __format
 		      const char* __chars[] = { "false", "true" };
 		      if (auto __res = __out._M_reserve(__len))
 			{
-			  if (!__is_constant_evaluated())
-			    __builtin_memcpy(__res.get(), __chars[__arg], __len);
-			  else
+			  if consteval {
 			    for (size_t __i = 0; __i < __len; ++__i)
 			      __res.get()[__i] = __chars[__arg][__i];
+			  } else {
+			    __builtin_memcpy(__res.get(), __chars[__arg], __len);
+			  }
 			  __res._M_bump(__len);
 			  __done = true;
 			}
@@ -5507,11 +5509,12 @@ namespace __format
 		      string_view __sv = __arg;
 		      if (auto __res = __out._M_reserve(__sv.size()))
 			{
-			  if (!__is_constant_evaluated())
-			    __builtin_memcpy(__res.get(), __sv.data(), __sv.size());
-			  else
+			  if consteval {
 			    for (size_t __i = 0; __i < __sv.size(); ++__i)
 			      __res.get()[__i] = __sv[__i];
+			  } else {
+			    __builtin_memcpy(__res.get(), __sv.data(), __sv.size());
+			  }
 			  __res._M_bump(__sv.size());
 			  __done = true;
 			}
