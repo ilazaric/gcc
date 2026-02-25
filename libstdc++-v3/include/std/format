@@ -5569,9 +5569,9 @@ namespace __format
 	if constexpr (sizeof...(_Ts) != 0)
 	  {
 	    using _Parse_ctx = __format::_Scanner<_CharT>::_Parse_context;
-	    auto* __types = static_cast<_Parse_ctx*>(this)->_M_types;
-	    if (!__types) return; // formatting scanner
-	    auto __arg = __bar[__id];
+	    auto* __ptr = static_cast<_Parse_ctx*>(this)->_M_types;
+	    if (!__ptr) return; // formatting scanner
+	    auto __arg = __ptr[__id];
 	    __format::_Arg_t __types[] = {
 	      __format::__to_arg_t_enum<_CharT, _Ts>()...
 	    };
