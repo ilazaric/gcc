@@ -2576,10 +2576,25 @@ namespace __format
 #ifdef _GLIBCXX_USE_WCHAR_T
 	  else
 	    {
-	      auto __p = (_CharT*)__builtin_alloca(__n * sizeof(_CharT));
+	      auto __p = std::is_constant_evaluated()
+		? new _CharT[__n * sizeof(_CharT)]
+		: (_CharT*)__builtin_alloca(__n * sizeof(_CharT));
 	      std::__to_wstring_numeric(__buf, __n, __p);
 	      __str = wstring_view(__p, __n);
 	    }
+
+#ifdef __glibcxx_constexpr_format // C++ >= 26
+	  struct _Cleanup
+	  {
+	    const _CharT* _M_ptr;
+
+	    constexpr ~_Cleanup()
+	    {
+	      if (std::is_constant_evaluated())
+		delete[] _M_ptr;
+	    }
+	  } __cleanup(is_same_v<char, _CharT> ? nullptr : __str.data());
+#endif
 #endif
 
 #if __glibcxx_format >= 202304L
