@@ -18,7 +18,7 @@ constexpr26 std::string
 fdebug(char t)
 { return std::format("{:?}", t); }
 
-std::wstring
+constexpr26 std::wstring
 fdebug(wchar_t t)
 { return std::format(L"{:?}", t); }
 
@@ -26,7 +26,7 @@ constexpr26 std::string
 fdebug(std::string_view t)
 { return std::format("{:?}", t); }
 
-std::wstring
+constexpr26 std::wstring
 fdebug(std::wstring_view t)
 { return std::format(L"{:?}", t); }
 
@@ -250,7 +250,7 @@ test_ill_formed_utf8_seq()
 #endif // UNICODE_ENC
 }
 
-void
+constexpr26 void
 test_ill_formed_utf32()
 {
 #if UNICODE_ENC
@@ -729,7 +729,8 @@ test_padding()
 #endif // UNICODE_ENC
 }
 
-void test_char_as_wchar()
+constexpr26 void
+test_char_as_wchar()
 {
   std::wstring res;
 
@@ -821,43 +822,33 @@ constexpr26 void
 test_formatters_c()
 {
   test_formatters<char>();
-  if (!std::is_constant_evaluated())
-    {
-      test_formatters<wchar_t>();
-      test_formatter_char<wchar_t, char>();
-    }
+  test_formatters<wchar_t>();
+  test_formatter_char<wchar_t, char>();
 }
 
 constexpr26 bool
 test_all()
 {
   test_basic_escapes<char>();
+  test_basic_escapes<wchar_t>();
   test_ascii_escapes<char>();
+  test_ascii_escapes<wchar_t>();
   test_extended_ascii<char>();
+  test_extended_ascii<wchar_t>();
 
   test_unicode_escapes<char>();
+  test_unicode_escapes<wchar_t>();
   test_grapheme_extend<char>();
+  test_grapheme_extend<wchar_t>();
   test_replacement_char<char>();
+  test_replacement_char<wchar_t>();
   test_ill_formed_utf8_seq();
+  test_ill_formed_utf32();
 
   test_fill<char>();
+  test_fill<wchar_t>();
   test_prec<char>();
-
-  // constexpr wide formatting not yet implemented
-  if (!std::is_constant_evaluated())
-    {
-      test_basic_escapes<wchar_t>();
-      test_ascii_escapes<wchar_t>();
-      test_extended_ascii<wchar_t>();
-
-      test_unicode_escapes<wchar_t>();
-      test_grapheme_extend<wchar_t>();
-      test_replacement_char<wchar_t>();
-      test_ill_formed_utf32();
-
-      test_fill<wchar_t>();
-      test_prec<wchar_t>();
-    }
+  test_prec<wchar_t>();
 
   test_padding();
 

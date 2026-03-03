@@ -360,8 +360,7 @@ test_char()
   VERIFY( s == "11110000 11110000 240 360 f0 F0" );
 }
 
-// constexpr wide formatting not yet implemented
-void
+constexpr26 void
 test_wchar()
 {
   using namespace std::literals;
@@ -370,24 +369,27 @@ test_wchar()
   s = std::format(L"{}", L'a');
   VERIFY( s == L"a" );
 
-  s = std::format(L"{} {} {} {} {} {}", L'0', 1, 2LL, 3.4, L"five", L"six"s);
-  VERIFY( s == L"0 1 2 3.4 five six" );
+  if (!std::is_constant_evaluated())
+    {
+      s = std::format(L"{} {} {} {} {} {}", L'0', 1, 2LL, 3.4, L"five", L"six"s);
+      VERIFY( s == L"0 1 2 3.4 five six" );
 
-  std::locale loc;
-  s = std::format(loc, L"{:L} {:.3s}{:Lc}", true, L"data"sv, '.');
-  VERIFY( s == L"true dat." );
+      std::locale loc;
+      s = std::format(loc, L"{:L} {:.3s}{:Lc}", true, L"data"sv, '.');
+      VERIFY( s == L"true dat." );
 
-  s = std::format(L"{}", 0.0625);
-  VERIFY( s == L"0.0625" );
-  s = std::format(L"{}", 0.25);
-  VERIFY( s == L"0.25" );
-  s = std::format(L"{:+a} {:A}", 0x1.23p45, -0x1.abcdefp-15);
-  VERIFY( s == L"+1.23p+45 -1.ABCDEFP-15" );
+      s = std::format(L"{}", 0.0625);
+      VERIFY( s == L"0.0625" );
+      s = std::format(L"{}", 0.25);
+      VERIFY( s == L"0.25" );
+      s = std::format(L"{:+a} {:A}", 0x1.23p45, -0x1.abcdefp-15);
+      VERIFY( s == L"+1.23p+45 -1.ABCDEFP-15" );
 
-  double inf = std::numeric_limits<double>::infinity();
-  double nan = std::numeric_limits<double>::quiet_NaN();
-  s = std::format(L"{0} {0:F} {1} {1:E}", -inf, -nan);
-  VERIFY( s == L"-inf -INF -nan -NAN" );
+      double inf = std::numeric_limits<double>::infinity();
+      double nan = std::numeric_limits<double>::quiet_NaN();
+      s = std::format(L"{0} {0:F} {1} {1:E}", -inf, -nan);
+      VERIFY( s == L"-inf -INF -nan -NAN" );
+    }
 
   s = std::format(L"{0:#b} {0:#B} {0:#x} {0:#X}", 99);
   VERIFY( s == L"0b1100011 0B1100011 0x63 0X63" );
@@ -396,17 +398,20 @@ test_wchar()
   s = std::format(L"{:d} {:d}", wchar_t(-1), char(-1));
   VERIFY( s.find('-') == std::wstring::npos );
 
-  auto ws = std::format(L"{:L}", 0.5);
-  VERIFY( ws == L"0.5" );
-  // The default C locale.
-  std::locale cloc = std::locale::classic();
-  // PR libstdc++/119671 use-after-free formatting floating-point to wstring
-  ws = std::format(cloc, L"{:L}", 0.5);
-  VERIFY( ws == L"0.5" );
-  // A locale with no name, but with the same facets as the C locale.
-  std::locale locx(cloc, &std::use_facet<std::ctype<char>>(cloc));
-  ws = std::format(locx, L"{:L}", 0.5);
-  VERIFY( ws == L"0.5" );
+  if (!std::is_constant_evaluated())
+    {
+      auto ws = std::format(L"{:L}", 0.5);
+      VERIFY( ws == L"0.5" );
+      // The default C locale.
+      std::locale cloc = std::locale::classic();
+      // PR libstdc++/119671 use-after-free formatting floating-point to wstring
+      ws = std::format(cloc, L"{:L}", 0.5);
+      VERIFY( ws == L"0.5" );
+      // A locale with no name, but with the same facets as the C locale.
+      std::locale locx(cloc, &std::use_facet<std::ctype<char>>(cloc));
+      ws = std::format(locx, L"{:L}", 0.5);
+      VERIFY( ws == L"0.5" );
+    }
 }
 
 constexpr26 void
@@ -611,6 +616,7 @@ test_all()
   test_alternate_forms();
   test_width();
   test_char();
+  test_wchar();
   test_minmax();
   test_p1652r1();
   test_pointer();
@@ -621,7 +627,6 @@ test_all()
     {
       test_infnan();
       test_locale();
-      test_wchar();
     }
 
   return true;

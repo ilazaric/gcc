@@ -1,4 +1,5 @@
 // { dg-do run { target c++20 } }
+// { dg-options "-fconstexpr-ops-limit=100000000" }
 
 #if __cplusplus >= 202400L
 # define constexpr26 constexpr
@@ -141,8 +142,6 @@ test_format_spec()
   VERIFY( ! is_format_string_for("{:3.3p}", nullptr) );
 
   // Dynamic precision arg must be a standard integer type.
-  // Not testing in contexpr because the exception occurs in floating-point formatting,
-  // and floating-point formatting is not constexpr-enabled.
   if (!std::is_constant_evaluated())
     {
       VERIFY( ! is_format_string_for("{:.{}f}", 1.0, 1.5) );
@@ -174,16 +173,11 @@ test_format_spec()
   // Maximum integer value supported for widths and precisions is USHRT_MAX.
   VERIFY( is_format_string_for("{:65535}", 1) );
 
-  // constexpr wide formatting not yet implemented
-  if (!std::is_constant_evaluated())
-    { 
-      VERIFY( is_format_string_for(L"{:65535}", 1) );
-      // PR124145
-      VERIFY( ! is_format_string_for("{:65536}", 1) );
-      VERIFY( ! is_format_string_for(L"{:65536}", 1) );
-      VERIFY( ! is_format_string_for("{:9999999}", 1) );
-      VERIFY( ! is_format_string_for(L"{:9999999}", 1) );
-    }
+  VERIFY( is_format_string_for(L"{:65535}", 1) );
+  VERIFY( ! is_format_string_for("{:65536}", 1) );
+  VERIFY( ! is_format_string_for(L"{:65536}", 1) );
+  VERIFY( ! is_format_string_for("{:9999999}", 1) );
+  VERIFY( ! is_format_string_for(L"{:9999999}", 1) );
 }
 
 constexpr26 void
