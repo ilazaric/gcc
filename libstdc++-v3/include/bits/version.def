@@ -1331,6 +1331,17 @@ ftms = {
 };
 
 ftms = {
+  name = constexpr_format;
+  // 202511 P3391R2 constexpr std::format
+  no_stdname = true; // not fully implemented yet
+  values = {
+    v = 202511;
+    cxxmin = 26;
+    hosted = yes;
+  };
+};
+
+ftms = {
   name = format_uchar;
   values = {
     v = 202311;
