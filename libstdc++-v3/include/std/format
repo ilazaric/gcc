@@ -2097,7 +2097,6 @@ namespace __format
       }
 
       template<typename _Fp, typename _Out>
-	_GLIBCXX26_CONSTEXPR
 	typename basic_format_context<_Out, _CharT>::iterator
 	format(_Fp __v, basic_format_context<_Out, _CharT>& __fc) const
 	{
