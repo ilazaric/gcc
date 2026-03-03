@@ -39,6 +39,7 @@
 #define __glibcxx_want_format_ranges
 #define __glibcxx_want_format_uchar
 #define __glibcxx_want_constexpr_exceptions
+#define __glibcxx_want_constexpr_format
 #include <bits/version.h>
 
 #ifdef __cpp_lib_format // C++ >= 20 && HOSTED
