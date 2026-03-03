@@ -61,8 +61,7 @@ test_no_args()
   VERIFY( s == "128bpm }" );
 }
 
-// not constexpr because of PR124145
-void
+constexpr26 void
 test_unescaped()
 {
 #ifdef __cpp_exceptions
@@ -308,31 +307,27 @@ test_width()
   s = std::format("DR {0:{1}}: allow width {1} from arg-id", 3721, 0);
   VERIFY( s == "DR 3721: allow width 0 from arg-id" );
 
-  // not constexpr because of PR124145
-  if (!std::is_constant_evaluated())
-    {
-      try {
-	s = std::format("Negative width is an error: {0:{1}}", 123, -1);
-	VERIFY(false);
-      } catch (const std::format_error&) {
-      }
+  try {
+    s = std::format("Negative width is an error: {0:{1}}", 123, -1);
+    VERIFY(false);
+  } catch (const std::format_error&) {
+  }
 
-      try {
-	bool no = false, yes = true;
-	auto args = std::make_format_args(no, yes);
-	s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
-	VERIFY(false);
-      } catch (const std::format_error&) {
-      }
+  try {
+    bool no = false, yes = true;
+    auto args = std::make_format_args(no, yes);
+    s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
+    VERIFY(false);
+  } catch (const std::format_error&) {
+  }
 
-      try {
-	char wat = '?', bang = '!';
-	auto args = std::make_format_args(wat, bang);
-	s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
-	VERIFY(false);
-      } catch (const std::format_error&) {
-      }
-    }
+  try {
+    char wat = '?', bang = '!';
+    auto args = std::make_format_args(wat, bang);
+    s = std::vformat("DR 3720: restrict type of width arg-id {0:{1}}", args);
+    VERIFY(false);
+  } catch (const std::format_error&) {
+  }
 }
 
 constexpr26 void
@@ -611,6 +606,7 @@ constexpr26 bool
 test_all()
 {
   test_no_args();
+      test_unescaped();
   test_std_examples();
   test_alternate_forms();
   test_width();
@@ -623,7 +619,6 @@ test_all()
 
   if (!std::is_constant_evaluated())
     {
-      test_unescaped();
       test_infnan();
       test_locale();
       test_wchar();
