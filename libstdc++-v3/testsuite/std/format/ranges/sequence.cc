@@ -63,8 +63,7 @@ is_range_formatter_spec_for(CharT const* spec, Rg&& rg)
   }
 }
 
-// not constexpr because of PR124145
-void
+constexpr26 void
 test_format_string()
 {
   // invalid format spec 'p'
@@ -347,12 +346,10 @@ test_padding()
 constexpr26 bool
 test_all()
 {
+  test_format_string();
   test_outputs();
   test_nested();
   test_padding();
-
-  if (!std::is_constant_evaluated())
-    test_format_string();
   
   return true;
 }

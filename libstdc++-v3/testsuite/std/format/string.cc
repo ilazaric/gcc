@@ -40,16 +40,12 @@ test_no_args()
   VERIFY( is_format_string_for("chars") );
   VERIFY( is_format_string_for(" The Great Escape {{}} ") );
 
-  // not constexpr because of PR124145
-  if (!std::is_constant_evaluated())
-    {
-      VERIFY( ! is_format_string_for("{") );
-      VERIFY( ! is_format_string_for("}") );
-      VERIFY( ! is_format_string_for("}{") );
-      VERIFY( ! is_format_string_for("{{}") );
-      VERIFY( ! is_format_string_for("{{{") );
-      VERIFY( ! is_format_string_for("{{{{{") );
-    }
+  VERIFY( ! is_format_string_for("{") );
+  VERIFY( ! is_format_string_for("}") );
+  VERIFY( ! is_format_string_for("}{") );
+  VERIFY( ! is_format_string_for("{{}") );
+  VERIFY( ! is_format_string_for("{{{") );
+  VERIFY( ! is_format_string_for("{{{{{") );
 }
 
 constexpr26 void
@@ -58,12 +54,8 @@ test_indexing()
   VERIFY( is_format_string_for("{} to {}", "a", "b") );   // automatic indexing
   VERIFY( is_format_string_for("{1} to {0}", "a", "b") ); // manual indexing
 
-  // not constexpr because of PR124145
-  if (!std::is_constant_evaluated())
-    {
-      VERIFY( ! is_format_string_for("{0} to {}", "a", "b") );  // mixed indexing
-      VERIFY( ! is_format_string_for("{} to {1}", "a", "b") );  // mixed indexing
-    }
+  VERIFY( ! is_format_string_for("{0} to {}", "a", "b") );  // mixed indexing
+  VERIFY( ! is_format_string_for("{} to {1}", "a", "b") );  // mixed indexing
 
   VERIFY( is_format_string_for("{} {} {}", 1, 2, 3) );
   VERIFY( is_format_string_for("{} {} {}", 1, 2, 3, 4) );
@@ -71,14 +63,10 @@ test_indexing()
   VERIFY( is_format_string_for("{1} {2} {3}", 1, 2, 3, 4) );
   VERIFY( is_format_string_for("{3} {3} {3}", 1, 2, 3, 4) );
 
-  // not constexpr because of PR124145
-  if (!std::is_constant_evaluated())
-    {
-      VERIFY( ! is_format_string_for("{2}", 1, 2) );
+  VERIFY( ! is_format_string_for("{2}", 1, 2) );
 
-      VERIFY( ! is_format_string_for("{0} {}", 1) );
-      VERIFY( ! is_format_string_for("{} {0}", 1) );
-    }
+  VERIFY( ! is_format_string_for("{0} {}", 1) );
+  VERIFY( ! is_format_string_for("{} {0}", 1) );
 }
 
 #if __cpp_lib_format_ranges
@@ -110,59 +98,56 @@ test_format_spec()
   VERIFY( is_format_string_for("{0:s} {0:?}", "str") == escaped_strings_supported );
   VERIFY( is_format_string_for("{0:} {0:?}", 'c') == escaped_strings_supported );
 
-  // not constexpr because of PR124145
-  if (!std::is_constant_evaluated())
-    {
-      // Invalid sign options.
-      VERIFY( ! is_format_string_for("{:+}", "str") );
-      VERIFY( ! is_format_string_for("{:+s}", "str") );
-      VERIFY( ! is_format_string_for("{:+}", 'c') );
-      VERIFY( ! is_format_string_for("{:+c}", 'c') );
-      VERIFY( ! is_format_string_for("{:+p}", nullptr) );
-      VERIFY( ! is_format_string_for("{:+}", true) );
-      VERIFY( ! is_format_string_for("{:+s}", true) );
-      VERIFY( ! is_format_string_for("{:+?}", "str") );
-      VERIFY( ! is_format_string_for("{:+?}", 'c') );
+  // Invalid sign options.
+  VERIFY( ! is_format_string_for("{:+}", "str") );
+  VERIFY( ! is_format_string_for("{:+s}", "str") );
+  VERIFY( ! is_format_string_for("{:+}", 'c') );
+  VERIFY( ! is_format_string_for("{:+c}", 'c') );
+  VERIFY( ! is_format_string_for("{:+p}", nullptr) );
+  VERIFY( ! is_format_string_for("{:+}", true) );
+  VERIFY( ! is_format_string_for("{:+s}", true) );
+  VERIFY( ! is_format_string_for("{:+?}", "str") );
+  VERIFY( ! is_format_string_for("{:+?}", 'c') );
 
-      // Invalid alternate forms.
-      VERIFY( ! is_format_string_for("{:#}", "str") );
-      VERIFY( ! is_format_string_for("{:#s}", "str") );
-      VERIFY( ! is_format_string_for("{:#}", 'c') );
-      VERIFY( ! is_format_string_for("{:#c}", 'c') );
-      VERIFY( ! is_format_string_for("{:#}", true) );
-      VERIFY( ! is_format_string_for("{:#s}", true) );
-      VERIFY( ! is_format_string_for("{:#}", nullptr) );
-      VERIFY( ! is_format_string_for("{:#p}", nullptr) );
-      VERIFY( ! is_format_string_for("{:#?}", "str") );
-      VERIFY( ! is_format_string_for("{:#?}", 'c') );
+  // Invalid alternate forms.
+  VERIFY( ! is_format_string_for("{:#}", "str") );
+  VERIFY( ! is_format_string_for("{:#s}", "str") );
+  VERIFY( ! is_format_string_for("{:#}", 'c') );
+  VERIFY( ! is_format_string_for("{:#c}", 'c') );
+  VERIFY( ! is_format_string_for("{:#}", true) );
+  VERIFY( ! is_format_string_for("{:#s}", true) );
+  VERIFY( ! is_format_string_for("{:#}", nullptr) );
+  VERIFY( ! is_format_string_for("{:#p}", nullptr) );
+  VERIFY( ! is_format_string_for("{:#?}", "str") );
+  VERIFY( ! is_format_string_for("{:#?}", 'c') );
 
-      // The 0 option is not valid for charT and bool.
-      VERIFY( ! is_format_string_for("{:0c}", 'c') );
-      VERIFY( ! is_format_string_for("{:0s}", true) );
+  // The 0 option is not valid for charT and bool.
+  VERIFY( ! is_format_string_for("{:0c}", 'c') );
+  VERIFY( ! is_format_string_for("{:0s}", true) );
 
-      // Dynamic width arg must be a standar integer type.
-      VERIFY( ! is_format_string_for("{:{}d}", 1, 1.5) );
-      VERIFY( ! is_format_string_for("{:{}d}", 1, true) );
-      VERIFY( ! is_format_string_for("{:{}d}", 1, "str") );
-      VERIFY( ! is_format_string_for("{:{}d}", 1, nullptr) );
+  // Dynamic width arg must be a standar integer type.
+  VERIFY( ! is_format_string_for("{:{}d}", 1, 1.5) );
+  VERIFY( ! is_format_string_for("{:{}d}", 1, true) );
+  VERIFY( ! is_format_string_for("{:{}d}", 1, "str") );
+  VERIFY( ! is_format_string_for("{:{}d}", 1, nullptr) );
 #ifdef __SIZEOF_INT128__
-      VERIFY( ! is_format_string_for("{:{}d}", 1, static_cast<__int128>(1)) );
+  VERIFY( ! is_format_string_for("{:{}d}", 1, static_cast<__int128>(1)) );
 #endif
 
-      // Precision only valid for string and floating-point types.
-      VERIFY( ! is_format_string_for("{:.3d}", 1) );
-      VERIFY( ! is_format_string_for("{:3.3d}", 1) );
-    }
+  // Precision only valid for string and floating-point types.
+  VERIFY( ! is_format_string_for("{:.3d}", 1) );
+  VERIFY( ! is_format_string_for("{:3.3d}", 1) );
 
   VERIFY( is_format_string_for("{:3.3s}", "str") );
 
-  // not constexpr because of PR124145
+  VERIFY( ! is_format_string_for("{:3.3s}", 'c') );
+  VERIFY( ! is_format_string_for("{:3.3p}", nullptr) );
+
+  // Dynamic precision arg must be a standard integer type.
+  // Not testing in contexpr because the exception occurs in floating-point formatting,
+  // and floating-point formatting is not constexpr-enabled.
   if (!std::is_constant_evaluated())
     {
-      VERIFY( ! is_format_string_for("{:3.3s}", 'c') );
-      VERIFY( ! is_format_string_for("{:3.3p}", nullptr) );
-
-      // Dynamic precision arg must be a standard integer type.
       VERIFY( ! is_format_string_for("{:.{}f}", 1.0, 1.5) );
       VERIFY( ! is_format_string_for("{:.{}f}", 1.0, true) );
       VERIFY( ! is_format_string_for("{:.{}f}", 1.0, "str") );
@@ -170,24 +155,24 @@ test_format_spec()
 #ifdef __SIZEOF_INT128__
       VERIFY( ! is_format_string_for("{:{}f}", 1.0, static_cast<unsigned __int128>(1)) );
 #endif
-
-      // Invalid presentation types for integers.
-      VERIFY( ! is_format_string_for("{:f}", 1) );
-      VERIFY( ! is_format_string_for("{:s}", 1) );
-      VERIFY( ! is_format_string_for("{:g}", 1) );
-      VERIFY( ! is_format_string_for("{:E}", 1) );
-      VERIFY( ! is_format_string_for("{:D}", 1) );
-
-      // Invalid presentation types for floating-point types.
-      VERIFY( ! is_format_string_for("{:d}", 1.2) );
-      VERIFY( ! is_format_string_for("{:b}", 1.2) );
-      VERIFY( ! is_format_string_for("{:x}", 1.2) );
-      VERIFY( ! is_format_string_for("{:s}", 1.2) );
-
-      // Invalid presentation types for strings.
-      VERIFY( ! is_format_string_for("{:S}", "str") );
-      VERIFY( ! is_format_string_for("{:d}", "str") );
     }
+
+  // Invalid presentation types for integers.
+  VERIFY( ! is_format_string_for("{:f}", 1) );
+  VERIFY( ! is_format_string_for("{:s}", 1) );
+  VERIFY( ! is_format_string_for("{:g}", 1) );
+  VERIFY( ! is_format_string_for("{:E}", 1) );
+  VERIFY( ! is_format_string_for("{:D}", 1) );
+
+  // Invalid presentation types for floating-point types.
+  VERIFY( ! is_format_string_for("{:d}", 1.2) );
+  VERIFY( ! is_format_string_for("{:b}", 1.2) );
+  VERIFY( ! is_format_string_for("{:x}", 1.2) );
+  VERIFY( ! is_format_string_for("{:s}", 1.2) );
+
+  // Invalid presentation types for strings.
+  VERIFY( ! is_format_string_for("{:S}", "str") );
+  VERIFY( ! is_format_string_for("{:d}", "str") );
 
   // Maximum integer value supported for widths and precisions is USHRT_MAX.
   VERIFY( is_format_string_for("{:65535}", 1) );
@@ -204,8 +189,7 @@ test_format_spec()
     }
 }
 
-// not constexpr because of PR124145
-void
+constexpr26 void
 test_pr110862()
 {
   try {
@@ -219,8 +203,7 @@ test_pr110862()
   }
 }
 
-// not constexpr because of PR124145
-void
+constexpr26 void
 test_pr110974()
 {
   try {
@@ -245,12 +228,8 @@ test_all()
   test_no_args();
   test_indexing();
   test_format_spec();
-
-  if (!std::is_constant_evaluated())
-    {
-      test_pr110862();
-      test_pr110974();
-    }
+  test_pr110862();
+  test_pr110974();
 
   return true;
 }

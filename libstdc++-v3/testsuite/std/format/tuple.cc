@@ -47,8 +47,7 @@ is_format_string_for(const wchar_t* str, Args&&... args)
 #define WIDEN_(C, S) ::std::__format::_Widen<C>(S, L##S)
 #define WIDEN(S) WIDEN_(CharT, S)
 
-// not constexpr because of PR124145
-void
+constexpr26 void
 test_format_string()
 {
   // invalid format stringss
@@ -398,6 +397,7 @@ test_nonblocking()
 constexpr26 bool
 test_all()
 {
+  test_format_string();
   test_outputs<char>();
   test_nested();
   test_padding();
@@ -405,12 +405,9 @@ test_all()
   test_nonblocking<std::pair>();
   test_nonblocking<std::tuple>();
 
+  // constexpr wide formatting not yet implemented
   if (!std::is_constant_evaluated())
-    {
-      test_format_string();
-      // constexpr wide formatting not yet implemented
-      test_outputs<wchar_t>();
-    }
+    test_outputs<wchar_t>();
 
   return true;
 }
