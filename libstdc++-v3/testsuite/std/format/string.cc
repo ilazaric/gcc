@@ -137,9 +137,7 @@ test_format_spec()
   // Precision only valid for string and floating-point types.
   VERIFY( ! is_format_string_for("{:.3d}", 1) );
   VERIFY( ! is_format_string_for("{:3.3d}", 1) );
-
   VERIFY( is_format_string_for("{:3.3s}", "str") );
-
   VERIFY( ! is_format_string_for("{:3.3s}", 'c') );
   VERIFY( ! is_format_string_for("{:3.3p}", nullptr) );
 
