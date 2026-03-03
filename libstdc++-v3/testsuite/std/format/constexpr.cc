@@ -26,7 +26,7 @@ test_format()
 {
   using namespace std;
 
-  basic_string_view<CharT> res;
+  basic_string<CharT> res;
 
   res = format(WIDEN("{}"), WIDEN('c'));
   VERIFY( res == WIDEN("c") );
