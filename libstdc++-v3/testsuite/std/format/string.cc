@@ -53,7 +53,6 @@ test_indexing()
 {
   VERIFY( is_format_string_for("{} to {}", "a", "b") );   // automatic indexing
   VERIFY( is_format_string_for("{1} to {0}", "a", "b") ); // manual indexing
-
   VERIFY( ! is_format_string_for("{0} to {}", "a", "b") );  // mixed indexing
   VERIFY( ! is_format_string_for("{} to {1}", "a", "b") );  // mixed indexing
 
