@@ -172,7 +172,7 @@ namespace __format
       template<typename _Tp>
 	requires convertible_to<const _Tp&, basic_string_view<_CharT>>
 	consteval
-	basic_format_string(const _Tp& __s);
+	basic_format_string(const _Tp& __s) noexcept;
 
       [[__gnu__::__always_inline__]]
       _GLIBCXX26_CONSTEXPR
@@ -5488,7 +5488,7 @@ namespace __format
       requires convertible_to<const _Tp&, basic_string_view<_CharT>>
       consteval
       basic_format_string<_CharT, _Args...>::
-      basic_format_string(const _Tp& __s)
+      basic_format_string(const _Tp& __s) noexcept
       : _M_str(__s)
       {
 	__format::_Checking_scanner<_CharT, remove_cvref_t<_Args>...>
