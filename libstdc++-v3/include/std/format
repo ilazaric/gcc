@@ -1489,9 +1489,11 @@ namespace __format
       _Spec<_CharT> _M_spec{};
     };
 
+  // A partial implementation of std::toupper that is constexpr-enabled,
+  // sufficient for formatting purposes.
   [[__gnu__::__always_inline__]]
   constexpr char
-  __toupper(char __c)
+  __toupper_numeric(char __c)
   {
     switch (__c)
     {
@@ -1504,6 +1506,7 @@ namespace __format
       case 'i': return 'I';
       case 'n': return 'N';
       case 'p': return 'P';
+      case 'x': return 'X';
       default: return __c;
     }
   }
@@ -1716,7 +1719,7 @@ namespace __format
 	      __res = to_chars(__start, __end, __u, 16);
 	      if (_M_spec._M_type == _Pres_X)
 		for (auto __p = __start; __p != __res.ptr; ++__p)
-		  *__p = __format::__toupper(*__p);
+		  *__p = __format::__toupper_numeric(*__p);
 	      break;
 	    default:
 	      __builtin_unreachable();
@@ -2223,7 +2226,7 @@ namespace __format
 	  if (__upper)
 	    {
 	      for (char* __p = __start; __p != __res.ptr; ++__p)
-		*__p = __format::__toupper(*__p);
+		*__p = __format::__toupper_numeric(*__p);
 	    }
 
 	  bool __have_sign = true;
@@ -2548,7 +2551,7 @@ namespace __format
 	    {
 	      __buf[1] = 'X';
 	      for (auto __p = __buf + 2; __p != __ptr; ++__p)
-		*__p = __format::__toupper(*__p);
+		*__p = __format::__toupper_numeric(*__p);
 	    }
 #endif
 
