@@ -38,18 +38,20 @@ struct wpunct : std::numpunct<wchar_t>
   std::string do_grouping() const override { return "\2"; }
 };
 
-// constexpr wide formatting not yet implemented
-void
+constexpr26 void
 test_wchar()
 {
   wchar_t buf[32] = { };
   auto out = std::format_to(buf, L"123 + 456 = {}", 579);
   VERIFY( out == buf+15 );
 
-  std::locale loc({}, new wpunct);
-  auto out2 = std::format_to(buf, loc, L"{:Ld}", 12345);
-  VERIFY( out2 == buf+7 );
-  VERIFY( std::wstring_view(buf, out2 - buf) == L"1,23,45" );
+  if (!std::is_constant_evaluated())
+    {
+      std::locale loc({}, new wpunct);
+      auto out2 = std::format_to(buf, loc, L"{:Ld}", 12345);
+      VERIFY( out2 == buf+7 );
+      VERIFY( std::wstring_view(buf, out2 - buf) == L"1,23,45" );
+    }
 }
 
 template<typename I>
@@ -82,14 +84,11 @@ test_move_only()
     = std::format_to(std::move(mo), "for{:.3} that{:c}", "matte", (int)'!');
   VERIFY( str == "format that!" );
 
-  if (!std::is_constant_evaluated())
-    {
-      std::vector<wchar_t> vec;
-      move_only_iterator wmo(std::back_inserter(vec));
-      [[maybe_unused]] auto wres
-			 = std::format_to(std::move(wmo), L"for{:.3} hat{:c}", L"matte", (long)L'!');
-      VERIFY( std::wstring_view(vec.data(), vec.size()) == L"format hat!" );
-    }
+  std::vector<wchar_t> vec;
+  move_only_iterator wmo(std::back_inserter(vec));
+  [[maybe_unused]] auto wres
+    = std::format_to(std::move(wmo), L"for{:.3} hat{:c}", L"matte", (long)L'!');
+  VERIFY( std::wstring_view(vec.data(), vec.size()) == L"format hat!" );
 }
 
 constexpr26 void
@@ -107,11 +106,9 @@ constexpr26 bool
 test_all()
 {
   test();
+  test_wchar();
   test_move_only();
   test_pr110917();
-  
-  if (!std::is_constant_evaluated())
-    test_wchar();
 
   return true;
 }

@@ -165,8 +165,7 @@ constexpr26 void
 test_output_cont()
 {
   test_output<char, Cont&, Cont>();
-  if (!std::is_constant_evaluated())
-    test_output<wchar_t, Cont const&, Cont>();
+  test_output<wchar_t, Cont const&, Cont>();
 }
 
 template<typename View>
@@ -174,8 +173,7 @@ constexpr26 void
 test_output_view()
 {
   test_output<char, View, int[3]>();
-  if (!std::is_constant_evaluated())
-    test_output<wchar_t, View, int[3]>();
+  test_output<wchar_t, View, int[3]>();
 }
 
 constexpr26 void

@@ -30,7 +30,7 @@ test()
   VERIFY( n == 5 );
 }
 
-void
+constexpr26 void
 test_wchar()
 {
   auto n = std::formatted_size(L"");
@@ -54,8 +54,7 @@ constexpr26 bool
 test_all()
 {
   test();
-  if (!std::is_constant_evaluated())
-    test_wchar();
+  test_wchar();
   return true;
 }
 

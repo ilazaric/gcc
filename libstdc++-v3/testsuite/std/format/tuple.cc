@@ -399,15 +399,12 @@ test_all()
 {
   test_format_string();
   test_outputs<char>();
+  test_outputs<wchar_t>();
   test_nested();
   test_padding();
 
   test_nonblocking<std::pair>();
   test_nonblocking<std::tuple>();
-
-  // constexpr wide formatting not yet implemented
-  if (!std::is_constant_evaluated())
-    test_outputs<wchar_t>();
 
   return true;
 }

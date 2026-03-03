@@ -125,13 +125,9 @@ constexpr26 void
 test_outputs()
 {
   test_default<char, Formatter>();
+  test_default<wchar_t, Formatter>();
   test_override<char, Formatter>();
-  // constexpr wide formatting not yet implemented
-  if (!std::is_constant_evaluated())
-    {
-      test_default<wchar_t, Formatter>();
-      test_override<wchar_t, Formatter>();
-    }
+  test_override<wchar_t, Formatter>();
 }
 
 constexpr26 void

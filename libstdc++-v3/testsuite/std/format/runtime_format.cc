@@ -11,7 +11,7 @@ test_char()
   VERIFY( s == "123" );
 }
 
-void
+constexpr void
 test_wchar()
 {
   std::wstring fmt = L"{:#o}";
@@ -44,8 +44,7 @@ constexpr bool
 test_all()
 {
   test_char();
-  if (!std::is_constant_evaluated())
-    test_wchar();
+  test_wchar();
   test_internal_api();
   return true;
 }

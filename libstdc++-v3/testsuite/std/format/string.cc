@@ -172,7 +172,6 @@ test_format_spec()
 
   // Maximum integer value supported for widths and precisions is USHRT_MAX.
   VERIFY( is_format_string_for("{:65535}", 1) );
-
   VERIFY( is_format_string_for(L"{:65535}", 1) );
   VERIFY( ! is_format_string_for("{:65536}", 1) );
   VERIFY( ! is_format_string_for(L"{:65536}", 1) );
