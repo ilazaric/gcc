@@ -606,7 +606,7 @@ constexpr26 bool
 test_all()
 {
   test_no_args();
-      test_unescaped();
+  test_unescaped();
   test_std_examples();
   test_alternate_forms();
   test_width();
