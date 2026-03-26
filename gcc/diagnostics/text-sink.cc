@@ -212,7 +212,8 @@ text_sink::on_report_diagnostic (const diagnostic_info &diagnostic,
 
   pretty_printer *pp = get_printer ();
 
-  (*text_starter (&m_context)) (*this, &diagnostic);
+  if (!m_suppress_starter)
+    (*text_starter (&m_context)) (*this, &diagnostic);
 
   pp_output_formatted_text (pp, m_context.get_urlifier ());
 
@@ -249,9 +250,14 @@ text_sink::on_report_diagnostic (const diagnostic_info &diagnostic,
 	}
     }
 
-  (*text_finalizer (&m_context)) (*this,
-				  &diagnostic,
-				  orig_diag_kind);
+  if (!m_suppress_finalizer)
+    (*text_finalizer (&m_context)) (*this,
+				    &diagnostic,
+				    orig_diag_kind);
+  else {
+    pp_newline(pp);
+    pp_flush(pp);
+  }
 
   if (m_show_nesting && m_show_locations_in_nesting)
     get_context ().m_last_location = diagnostic_location (&diagnostic);
