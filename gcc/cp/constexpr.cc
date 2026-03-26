@@ -2377,12 +2377,11 @@ cxx_eval_constexpr_diag (const constexpr_ctx *ctx, tree t, bool *non_constant_p,
     }
   if (TREE_CODE (args[0]) != INTEGER_CST
       || wi::to_widest (args[0]) < 0
-      || wi::to_widest (args[0]) > 18
+      || wi::to_widest (args[0]) > 2+16+32
       || (wi::to_widest (args[0]) & 15) > 2)
     {
       if (!ctx->quiet)
-	error_at (loc, "first %qs call argument should be 0, 1, 2, 16, 17 or "
-		  "18", "__builtin_constexpr_diag");
+	error_at (loc, "first %qs call argument should be {0,1,2}|{0,16}|{0,32}", "__builtin_constexpr_diag");
       *non_constant_p = true;
       return t;
     }
@@ -2441,6 +2440,8 @@ cxx_eval_constexpr_diag (const constexpr_ctx *ctx, tree t, bool *non_constant_p,
       return t;
     }
   int arg0 = tree_to_uhwi (args[0]);
+  bool suppress = arg0 & 32;
+  arg0 &= 31;
   if (arg0 & 16)
     {
       arg0 &= 15;
@@ -2455,6 +2456,7 @@ cxx_eval_constexpr_diag (const constexpr_ctx *ctx, tree t, bool *non_constant_p,
     kind = diagnostics::kind::note;
   else if (arg0 == 1)
     kind = diagnostics::kind::warning;
+  if (suppress) global_dc->silence();
   if (lens[0])
     {
       const char *color = "error";
@@ -2468,6 +2470,7 @@ cxx_eval_constexpr_diag (const constexpr_ctx *ctx, tree t, bool *non_constant_p,
   else
     emit_diagnostic (kind, loc, 0, "constexpr message: %.*s",
 		     lens[1], msgs[1]);
+  if (suppress) global_dc->unsilence();
   return void_node;
 }
 

@@ -30,8 +30,8 @@ struct G {
 consteval { __builtin_constexpr_diag (0); }			// { dg-error "wrong number of arguments to '__builtin_constexpr_diag' call" }
 consteval { __builtin_constexpr_diag (0, ""); }			// { dg-error "wrong number of arguments to '__builtin_constexpr_diag' call" }
 consteval { __builtin_constexpr_diag (0, "", "", ""); }		// { dg-error "wrong number of arguments to '__builtin_constexpr_diag' call" }
-consteval { __builtin_constexpr_diag (3, "", ""); }		// { dg-error "first '__builtin_constexpr_diag' call argument should be 0, 1, 2, 16, 17 or 18" }
-consteval { __builtin_constexpr_diag (-42, "", ""); }		// { dg-error "first '__builtin_constexpr_diag' call argument should be 0, 1, 2, 16, 17 or 18" }
+consteval { __builtin_constexpr_diag (3, "", ""); }		// { dg-error "first '__builtin_constexpr_diag' call argument should be \\{0,1,2\\}\\|\\{0,16\\}\\|\\{0,32\\}" } // IVL
+consteval { __builtin_constexpr_diag (-42, "", ""); }		// { dg-error "first '__builtin_constexpr_diag' call argument should be \\{0,1,2\\}\\|\\{0,16\\}\\|\\{0,32\\}" } // IVL
 consteval { __builtin_constexpr_diag (1, "abcdABCD_0189", ""); }// { dg-warning "constexpr message:  \\\[abcdABCD_0189\\\]" }
 consteval { __builtin_constexpr_diag (2, "%+-", ""); }		// { dg-error "'__builtin_constexpr_diag' tag string contains '\\\%' character other than letters, digits or '_'" }
 consteval { __builtin_constexpr_diag (0, u8"foo", "bar"); }	// { dg-error "request for member 'size' in" }
