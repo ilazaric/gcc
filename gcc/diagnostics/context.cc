@@ -279,6 +279,16 @@ context::color_init (int value)
 	= pp_show_color (m_reference_printer);
 }
 
+void context::silence() {
+  for (auto sink_ : m_sinks)
+    sink_->silence();
+}
+
+void context::unsilence() {
+  for (auto sink_ : m_sinks)
+    sink_->unsilence();
+}
+
 /* Initialize URL support within this context based on VALUE,
    handling "auto".  */
 
