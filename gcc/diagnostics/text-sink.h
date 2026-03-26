@@ -47,9 +47,14 @@ public:
 		       : dc.get_source_printing_options ()),
     m_follows_reference_printer (follows_reference_printer),
     m_show_nesting (false),
-    m_show_nesting_levels (false)
+    m_show_nesting_levels (false),
+    m_suppress_starter(false),
+    m_suppress_finalizer(false)
   {}
   ~text_sink ();
+
+  void silence() override { m_suppress_starter = m_suppress_finalizer = true; }
+  void unsilence() override { m_suppress_starter = m_suppress_finalizer = false; }
 
   text_sink *dyn_cast_text_sink () final override { return this; }
 
@@ -184,6 +189,9 @@ protected:
 
   /* If true, then add "(level N):" when printing nested diagnostics.  */
   bool m_show_nesting_levels;
+
+  bool m_suppress_starter;
+  bool m_suppress_finalizer;
 };
 
 } // namespace diagnostics

@@ -509,6 +509,9 @@ public:
     return m_lang_mask;
   }
 
+  void silence();
+  void unsilence();
+
   bool diagnostic_impl (rich_location *, const metadata *,
 			option_id, const char *,
 			va_list *, enum kind) ATTRIBUTE_GCC_DIAG(5,0);

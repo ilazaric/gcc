@@ -56,6 +56,9 @@ public:
     sink &m_sink;
   };
 
+  virtual void silence(){}
+  virtual void unsilence(){}
+
   virtual ~sink () {}
 
   virtual text_sink *dyn_cast_text_sink () { return nullptr; }
