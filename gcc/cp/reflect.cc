@@ -6287,21 +6287,27 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not defined yet",
 			    fun, non_constant_p, jump_target);
 
-  // {
-  //     member_name = convert_from_reference (member_name);
-  //     member_name = cxx_eval_constant_expression (ctx, member_name,
-  // 					  vc_glvalue,
-  // 					  non_constant_p, overflow_p,
-  // 					  jump_target);
-  //     if (*jump_target || *non_constant_p)
-  // 	return NULL_TREE;
-  // }
+  // error_at(loc, "member name type: %T", TREE_TYPE(member_name));
+
+  // error_at(loc, "ctx? %d", (int)(bool)ctx->ctor);
 
   cpp_string ostr;
   {
+    // tree arg = member_name;
+    // arg = convert_from_reference (member_name);
+    // arg = cxx_eval_constant_expression (ctx, arg,
+    // 					// POINTER_TYPE_P (TREE_TYPE (arg))
+    // 					// ?
+    // 					vc_prvalue
+    // 					// : vc_glvalue
+    // 					,
+    // 					non_constant_p, overflow_p,
+    // 					jump_target);
+    // if (*jump_target || *non_constant_p)
+    //   return NULL_TREE;
+    
     cexpr_str cstr(member_name);
     cpp_string istr;
-    // STRIP_NOPS(cstr.message);
     if (!cstr.type_check(loc, false)) {
       *non_constant_p = true;
       return NULL_TREE;
@@ -6324,25 +6330,7 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
 			      jump_target);
   }
 
-  error_at(loc, "parsed name: (%llu) [%d %d %d %d %d]", ostr.len,
-	   ostr.text[0],
-	   ostr.text[1],
-	   ostr.text[2],
-	   ostr.text[3],
-	   ostr.text[4]
-	   );
-  
-  // {
-  //   blatruc_ret_t blatruc_ret = blatruc(loc, ctx, member_name, non_constant_p, overflow_p, jump_target, fun);
-  //   if (blatruc_ret.discriminant == 0) {
-  //     error_at (loc, "ivl_inject_csdm: unexpected second argument");
-  //     *non_constant_p = true;
-  //     return NULL_TREE;
-  //   }
-  //   if (blatruc_ret.discriminant == 1)
-  //     return blatruc_ret.fail2;
-  //   ostr = blatruc_ret.success;
-  // }
+  error_at(loc, "len: %zu", ostr.len);
 
   if (!cpp_valid_identifier (parse_in, ostr.text))
     return throw_exception (loc, ctx,
@@ -7661,12 +7649,24 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	  return NULL_TREE;
 	break;
       case METAFN_KIND_ARG_STRING_VIEW:
+	gcc_assert (argno == 1);
+	gcc_assert (TREE_CODE (call) == CALL_EXPR);
+	expr = convert_from_reference (get_nth_callarg (call, argno));
+	expr = cxx_eval_constant_expression (ctx, expr,
+					     vc_glvalue,
+					     non_constant_p, overflow_p,
+					     jump_target);
+	if (*jump_target || *non_constant_p)
+	  return NULL_TREE;
+	break;
       case METAFN_KIND_ARG_UNSIGNED:
       case METAFN_KIND_ARG_ACCESS_CONTEXT:
       case METAFN_KIND_ARG_DATA_MEMBER_OPTIONS:
 	gcc_assert (argno == 1);
-	expr = get_nth_callarg (call, argno);
-	expr = cxx_eval_constant_expression (ctx, expr, vc_prvalue,
+	gcc_assert (TREE_CODE (call) == CALL_EXPR);
+	expr = convert_from_reference (get_nth_callarg (call, argno));
+	expr = cxx_eval_constant_expression (ctx, expr,
+					     vc_prvalue,
 					     non_constant_p, overflow_p,
 					     jump_target);
 	if (*jump_target || *non_constant_p)
