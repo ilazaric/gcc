@@ -5569,10 +5569,31 @@ blatruc(location_t loc, const constexpr_ctx *ctx,
 	bool *non_constant_p,
 	bool *overflow_p, tree *jump_target, tree fun)
 {
+
+  {
+    cexpr_str cstr;
+    cstr.message = f;
+    if (!cstr.type_check(loc, true))
+      return {};
+    const char* msg = NULL;
+    int len = 0;
+    if (!cstr.extract(loc, msg, len, ctx, non_constant_p, overflow_p, jump_target))
+      return {};
+    cpp_string ret;
+    ret.len = len;
+    ret.text = (const unsigned char *)msg;
+    return ret;
+  }
+  
+  tree f_orig = f;
+  // error_at(loc, "type: %T", TREE_TYPE(f));
   if (!CLASS_TYPE_P (TREE_TYPE (f)))
     return {};
   tree fns = lookup_qualified_name (TREE_TYPE (f),
-				    get_identifier ("c_str"));
+				    get_identifier ("data"));
+  // if (error_operand_p (fns))
+  //   fns = lookup_qualified_name (TREE_TYPE (f),
+  // 				 get_identifier ("data"));
   if (error_operand_p (fns))
     return {};
   f = build_new_method_call (f, fns, NULL, NULL_TREE, LOOKUP_NORMAL,
@@ -5601,8 +5622,30 @@ blatruc(location_t loc, const constexpr_ctx *ctx,
     return {};
   tree field, value;
   unsigned k;
-  unsigned HOST_WIDE_INT l = 0;
+#if 0
   bool ntmbs = false;
+#endif
+  unsigned HOST_WIDE_INT l = 0;
+
+  {
+    tree fns = lookup_qualified_name (TREE_TYPE (f_orig),
+				      get_identifier ("size"));
+    if (error_operand_p (fns))
+      return {};
+    tree f2 = build_new_method_call (f_orig, fns, NULL, NULL_TREE, LOOKUP_NORMAL,
+				     NULL, tf_warning_or_error);
+    if (error_operand_p (f2))
+      return {};
+    f2 = cxx_eval_constant_expression (ctx, f2, vc_prvalue,
+				       non_constant_p, overflow_p,
+				       jump_target);
+    if (*jump_target || *non_constant_p)
+      return NULL_TREE;
+    l = tree_to_uhwi(f2);
+    // error_at(loc, "computed len: %zu", l);
+  }
+
+#if 0
   FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
     if (!tree_fits_shwi_p (value))
       return {};
@@ -5641,8 +5684,16 @@ blatruc(location_t loc, const constexpr_ctx *ctx,
       }
     else
       return {};
-  if (!ntmbs || l > INT_MAX - 1)
+#endif
+  
+  if (
+#if 0
+      !ntmbs ||
+#endif
+      l > INT_MAX - 1) {
+    error_at (loc, "here");
     return {};
+  }
   char *namep;
   unsigned len = l;
   if (l < 64)
@@ -5652,7 +5703,7 @@ blatruc(location_t loc, const constexpr_ctx *ctx,
   memset (namep, 0, l + 1);
   l = 0;
   FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
-    if (integer_zerop (value))
+    if (l == len)
       break;
     else if (field == NULL_TREE)
       {
@@ -5672,6 +5723,7 @@ blatruc(location_t loc, const constexpr_ctx *ctx,
 	l = tree_to_uhwi (field);
 	namep[l++] = tree_to_shwi (value);
       }
+  gcc_assert (l == len);
   namep[len] = '\0';
   /* Convert namep from execution charset to SOURCE_CHARSET.  */
   cpp_string istr, ostr;
@@ -5815,8 +5867,10 @@ eval_data_member_spec (location_t loc, const constexpr_ctx *ctx,
 	    goto fail;
 	  if (j && j == (fields[0] == boolean_true_node ? 2 : 1))
 	    continue;
+	  // error_at(loc, "foo type: %T", TREE_TYPE(fields[j]));
 	  tree f = build3 (COMPONENT_REF, TREE_TYPE (fields[j]), deref,
 			   fields[j], NULL_TREE);
+	  // error_at(loc, "foo type: %T", TREE_TYPE(f));
 	  if (j == 0)
 	    {
 	      /* The _M_is_u8 handling is simple.  */
@@ -6218,10 +6272,10 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
 		      bool *non_constant_p, bool *overflow_p, tree *jump_target, tree fun)
 {
   if (!CLASS_TYPE_P (type))
-    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not a class type",
+    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not class type",
 			    fun, non_constant_p, jump_target);
   if (typedef_variant_p (type))
-    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not a class type",
+    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is alias type",
 			    fun, non_constant_p, jump_target);    
   if (cv_qualified_p (type))
     return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is cv-qualified type",
@@ -6233,40 +6287,88 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not defined yet",
 			    fun, non_constant_p, jump_target);
 
-  // TODO: figure out how to extract the string from member_name
-
-  // gcc_assert (EXPR_P (member_name));
-
   // {
-  //   tree f = build3 (COMPONENT_REF, TREE_TYPE (fields[j]), deref,
-  // 		     fields[j], NULL_TREE);
-  //   gcc_assert (CLASS_TYPE_P (TREE_TYPE (f)));
-  //   tree fns = lookup_qualified_name (TREE_TYPE (f),
-  // 				      get_identifier ("c_str"));
-  //   gcc_assert (!error_operand_p (fns));
-  //   f = build_new_method_call (f, fns, NULL, NULL_TREE, LOOKUP_NORMAL,
-  // 			       NULL, tf_warning_or_error);
-  //   gcc_assert (error_operand_p (f));
-  //   f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
-  // 				      non_constant_p, overflow_p,
-  // 				      jump_target);
-  //   if (*jump_target || *non_constant_p)
-  //     return NULL_TREE;
-  //   STRIP_NOPS (f);
-  //   gcc_assert (TREE_CODE (f) == ADDR_EXPR);
-  //   f = TREE_OPERAND (f, 0);
-  //   f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
-  // 				      non_constant_p, overflow_p,
-  // 				      jump_target);
-  //   if (*jump_target || *non_constant_p)
-  //     return NULL_TREE;
-  //   gcc_assert (TREE_CODE (f) == CONSTRUCTOR
-  // 		&& TREE_CODE (TREE_TYPE (f)) == ARRAY_TYPE);
-  //   tree eltt = TYPE_MAIN_VARIANT (TREE_TYPE (TREE_TYPE (f)));
-  //   gcc_assert (eltt == char_type_node);
-    
+  //     member_name = convert_from_reference (member_name);
+  //     member_name = cxx_eval_constant_expression (ctx, member_name,
+  // 					  vc_glvalue,
+  // 					  non_constant_p, overflow_p,
+  // 					  jump_target);
+  //     if (*jump_target || *non_constant_p)
+  // 	return NULL_TREE;
   // }
 
+  cpp_string ostr;
+  {
+    cexpr_str cstr(member_name);
+    cpp_string istr;
+    // STRIP_NOPS(cstr.message);
+    if (!cstr.type_check(loc, false)) {
+      *non_constant_p = true;
+      return NULL_TREE;
+    }
+    const char* msg = NULL;
+    int len = 0;
+    if (!cstr.extract(loc, msg, len, ctx, non_constant_p, overflow_p, jump_target)) {
+      *non_constant_p = true;
+      return NULL_TREE;
+    }
+    istr.len = len;
+    istr.text = (const unsigned char *)msg;
+    if (!cpp_translate_string (parse_in, &istr, &ostr,
+			       CPP_STRING,
+			       true))
+      return throw_exception (loc, ctx,
+			      "conversion from ordinary literal "
+			      "encoding to source charset "
+			      "failed", fun, non_constant_p,
+			      jump_target);
+  }
+
+  error_at(loc, "parsed name: (%llu) [%d %d %d %d %d]", ostr.len,
+	   ostr.text[0],
+	   ostr.text[1],
+	   ostr.text[2],
+	   ostr.text[3],
+	   ostr.text[4]
+	   );
+  
+  // {
+  //   blatruc_ret_t blatruc_ret = blatruc(loc, ctx, member_name, non_constant_p, overflow_p, jump_target, fun);
+  //   if (blatruc_ret.discriminant == 0) {
+  //     error_at (loc, "ivl_inject_csdm: unexpected second argument");
+  //     *non_constant_p = true;
+  //     return NULL_TREE;
+  //   }
+  //   if (blatruc_ret.discriminant == 1)
+  //     return blatruc_ret.fail2;
+  //   ostr = blatruc_ret.success;
+  // }
+
+  if (!cpp_valid_identifier (parse_in, ostr.text))
+    return throw_exception (loc, ctx,
+			    "ivl_inject_csdm: second argument is not a valid identifier",
+			    fun, non_constant_p, jump_target);
+
+  tree id = get_identifier ((const char*)ostr.text);
+  switch (get_identifier_kind (id))
+    {
+    case cik_keyword:
+      return throw_exception (loc, ctx, "ivl_inject_csdm: second argument is a keyword",
+			      fun, non_constant_p, jump_target);
+    case cik_trait:
+      return throw_exception (loc, ctx, "ivl_inject_csdm: second argument is a built-in trait",
+			      fun, non_constant_p, jump_target);
+    default:
+      break;
+    }
+
+  {
+    tree lookup = lookup_qualified_name (type, id);
+    if (!error_operand_p (lookup))
+      return throw_exception (loc, ctx, "ivl_inject_csdm: second argument is already a name in type",
+			      fun, non_constant_p, jump_target);
+  }
+  
   if (kind != REFLECT_VALUE && kind != REFLECT_OBJECT)
     return throw_exception (loc, ctx, "ivl_inject_csdm: third argument is not a value or reference",
 			    fun, non_constant_p, jump_target);
@@ -6274,6 +6376,8 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   if (!literal_type_p (member_type))
     return throw_exception (loc, ctx, "ivl_inject_csdm: third argument type is not literal",
 			    fun, non_constant_p, jump_target);
+
+  error_at(loc, "parsed name: [%s]", ostr.text);
   
   return throw_exception (loc, ctx, "ivl_inject_csdm: not implemented yet, sorry",
 			  fun, non_constant_p, jump_target);
