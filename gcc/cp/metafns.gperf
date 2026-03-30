@@ -345,7 +345,7 @@ enum metafn_kind_args {
   METAFN_KIND_ARGS_TINFO_STRING_VIEW_INFO
     = (METAFN_KIND_ARG_INFO << (2 * METAFN_KIND_SHIFT))
       | (METAFN_KIND_ARG_STRING_VIEW << METAFN_KIND_SHIFT)
-      | METAFN_KIND_ARG_TINFO
+      | METAFN_KIND_ARG_TINFO,
 };
 
 /* This encodes metafn_kind_ret in the low METAFN_KIND_SHIFT bits, then
