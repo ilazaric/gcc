@@ -6287,27 +6287,14 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not defined yet",
 			    fun, non_constant_p, jump_target);
 
-  // error_at(loc, "member name type: %T", TREE_TYPE(member_name));
-
-  // error_at(loc, "ctx? %d", (int)(bool)ctx->ctor);
-
   cpp_string ostr;
+  struct deleter_t {
+    void* ptr;
+    ~deleter_t() { if (ptr) XDELETEVEC(ptr); }
+  } deleter{NULL};
+
   {
-    // tree arg = member_name;
-    // arg = convert_from_reference (member_name);
-    // arg = cxx_eval_constant_expression (ctx, arg,
-    // 					// POINTER_TYPE_P (TREE_TYPE (arg))
-    // 					// ?
-    // 					vc_prvalue
-    // 					// : vc_glvalue
-    // 					,
-    // 					non_constant_p, overflow_p,
-    // 					jump_target);
-    // if (*jump_target || *non_constant_p)
-    //   return NULL_TREE;
-    
     cexpr_str cstr(member_name);
-    cpp_string istr;
     if (!cstr.type_check(loc, false)) {
       *non_constant_p = true;
       return NULL_TREE;
@@ -6318,19 +6305,21 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
       *non_constant_p = true;
       return NULL_TREE;
     }
-    istr.len = len;
-    istr.text = (const unsigned char *)msg;
-    if (!cpp_translate_string (parse_in, &istr, &ostr,
-			       CPP_STRING,
-			       true))
-      return throw_exception (loc, ctx,
-			      "conversion from ordinary literal "
-			      "encoding to source charset "
-			      "failed", fun, non_constant_p,
-			      jump_target);
+    // possible it's not null terminated :D
+    char* txt = XNEWVEC(char, len + 1);
+    memcpy(txt, msg, len);
+    txt[len] = '\0';
+    ostr.text = (unsigned char*)txt;
+    ostr.len = len;
+    deleter.ptr = txt;
   }
 
-  error_at(loc, "len: %zu", ostr.len);
+  // error("parsed len: [%zu]", ostr.len);
+
+  if (strlen((const char*)ostr.text) != ostr.len)
+    return throw_exception (loc, ctx,
+			    "ivl_inject_csdm: second argument contains null character",
+			    fun, non_constant_p, jump_target);
 
   if (!cpp_valid_identifier (parse_in, ostr.text))
     return throw_exception (loc, ctx,
@@ -6365,7 +6354,7 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     return throw_exception (loc, ctx, "ivl_inject_csdm: third argument type is not literal",
 			    fun, non_constant_p, jump_target);
 
-  error_at(loc, "parsed name: [%s]", ostr.text);
+  // error_at(loc, "parsed name: [%s]", ostr.text);
   
   return throw_exception (loc, ctx, "ivl_inject_csdm: not implemented yet, sorry",
 			  fun, non_constant_p, jump_target);

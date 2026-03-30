@@ -12801,6 +12801,8 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
   tsubst_flags_t complain = tf_warning_or_error;
 
   msg = NULL;
+  // error("sz? %d", (int)(bool)message_sz);
+  // error("data? %d", (int)(bool)message_data);
   if (message_sz && message_data)
     {
       tree msz;
@@ -12831,6 +12833,8 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
 		      "%qE too large", msz);
 	  return false;
 	}
+      // error("init len");
+      // error("ctx? %d", (int)(bool)ctx);
       len = tree_to_uhwi (msz);
       tree data;
       if (ctx)
@@ -12868,11 +12872,13 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
 		  || (unsigned) TREE_STRING_LENGTH (str) < off + len)
 		goto unhandled;
 	      msg = TREE_STRING_POINTER (str) + off;
+	      // error("quick exit");
 	      goto translate;
 	    }
 	  if (TREE_CODE (str) != CONSTRUCTOR
 	      || TREE_CODE (TREE_TYPE (str)) != ARRAY_TYPE)
 	    goto unhandled;
+	  // error("creating memory!");
 	  char *b;
 	  if (len < 64)
 	    b = XALLOCAVEC (char, len + 1);
@@ -12919,10 +12925,12 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
 		  b[l - off] = tree_to_shwi (value);
 		l++;
 	      }
+	  // error_at(location, "not reached");
 	  b[len] = '\0';
 	}
       else
 	{
+	  
 	  data = maybe_constant_value (message_data, NULL_TREE, mce_true);
 	  if (!reduced_constant_expression_p (data))
 	    data = NULL_TREE;
@@ -12979,6 +12987,7 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
     }
   else
     {
+      // error_at(location, "not reached");
       tree eltype = TREE_TYPE (TREE_TYPE (message));
       int sz = TREE_INT_CST_LOW (TYPE_SIZE_UNIT (eltype));
       msg = TREE_STRING_POINTER (message);
