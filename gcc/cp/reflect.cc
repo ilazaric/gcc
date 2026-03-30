@@ -5550,156 +5550,155 @@ eval_variant_alternative (location_t loc, const constexpr_ctx *ctx, tree i,
       than alignment_of(type).  */
 
 
-// struct blatruc_ret_t {
-//   int discriminant;
-//   union {
-//     char fail;
-//     tree fail2;
-//     cpp_string success;
-//   };
+struct blatruc_ret_t {
+  int discriminant;
+  union {
+    char fail;
+    tree fail2;
+    cpp_string success;
+  };
 
-//   blatruc_ret_t() : discriminant(0), fail('\0') {}
-//   blatruc_ret_t(tree t) : discriminant(1), fail2(t) {}
-//   blatruc_ret_t(cpp_string ostr) : discriminant(2), success(ostr) {}
-// };
+  blatruc_ret_t() : discriminant(0), fail('\0') {}
+  blatruc_ret_t(tree t) : discriminant(1), fail2(t) {}
+  blatruc_ret_t(cpp_string ostr) : discriminant(2), success(ostr) {}
+};
 
-// static blatruc_ret_t
-// blatruc(const constexpr_ctx *ctx,
-// 			  tree f, cpp_string& ostr,
-// 			  bool *non_constant_p,
-// 			  bool *overflow_p, tree *jump_target)
-// {
-//   if (!CLASS_TYPE_P (TREE_TYPE (f)))
-//     return {};
-//   tree fns = lookup_qualified_name (TREE_TYPE (f),
-// 				    get_identifier ("c_str"));
-//   if (error_operand_p (fns))
-//     return {};
-//   f = build_new_method_call (f, fns, NULL, NULL_TREE, LOOKUP_NORMAL,
-// 			     NULL, tf_warning_or_error);
-//   if (error_operand_p (f))
-//     return {};
-
-//   f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
-// 				    non_constant_p, overflow_p,
-// 				    jump_target);
-//   if (*jump_target || *non_constant_p)
-//     return NULL_TREE;
-//   STRIP_NOPS (f);
-//   if (TREE_CODE (f) != ADDR_EXPR)
-//     return {};
-//   f = TREE_OPERAND (f, 0);
-//   f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
-// 				    non_constant_p, overflow_p,
-// 				    jump_target);
-//   if (*jump_target || *non_constant_p)
-//     return NULL_TREE;
-//   if (TREE_CODE (f) != CONSTRUCTOR
-//       || TREE_CODE (TREE_TYPE (f)) != ARRAY_TYPE)
-//     return {};
-//   tree eltt = TYPE_MAIN_VARIANT (TREE_TYPE (TREE_TYPE (f)));
-//   if (eltt != (j == 1 ? char8_type_node : char_type_node))
-//     return {};
-//   tree field, value;
-//   unsigned k;
-//   unsigned HOST_WIDE_INT l = 0;
-//   bool ntmbs = false;
-//   FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
-//     if (!tree_fits_shwi_p (value))
-//       return {};
-//     else if (field == NULL_TREE)
-//       {
-// 	if (integer_zerop (value))
-// 	  {
-// 	    ntmbs = true;
-// 	    break;
-// 	  }
-// 	++l;
-//       }
-//     else if (TREE_CODE (field) == RANGE_EXPR)
-//       {
-// 	tree lo = TREE_OPERAND (field, 0);
-// 	tree hi = TREE_OPERAND (field, 1);
-// 	if (!tree_fits_uhwi_p (lo) || !tree_fits_uhwi_p (hi))
-// 	  return {};
-// 	if (integer_zerop (value))
-// 	  {
-// 	    l = tree_to_uhwi (lo);
-// 	    ntmbs = true;
-// 	    break;
-// 	  }
-// 	l = tree_to_uhwi (hi) + 1;
-//       }
-//     else if (tree_fits_uhwi_p (field))
-//       {
-// 	l = tree_to_uhwi (field);
-// 	if (integer_zerop (value))
-// 	  {
-// 	    ntmbs = true;
-// 	    break;
-// 	  }
-// 	++l;
-//       }
-//     else
-//       return {};
-//   if (!ntmbs || l > INT_MAX - 1)
-//     return {};
-//   char *namep;
-//   unsigned len = l;
-//   if (l < 64)
-//     namep = XALLOCAVEC (char, l + 1);
-//   else
-//     namep = XNEWVEC (char, l + 1);
-//   memset (namep, 0, l + 1);
-//   l = 0;
-//   FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
-//     if (integer_zerop (value))
-//       break;
-//     else if (field == NULL_TREE)
-//       {
-// 	namep[l] = tree_to_shwi (value);
-// 	++l;
-//       }
-//     else if (TREE_CODE (field) == RANGE_EXPR)
-//       {
-// 	tree lo = TREE_OPERAND (field, 0);
-// 	tree hi = TREE_OPERAND (field, 1);
-// 	unsigned HOST_WIDE_INT m = tree_to_uhwi (hi);
-// 	for (l = tree_to_uhwi (lo); l <= m; ++l)
-// 	  namep[l] = tree_to_shwi (value);
-//       }
-//     else
-//       {
-// 	l = tree_to_uhwi (field);
-// 	namep[l++] = tree_to_shwi (value);
-//       }
-//   namep[len] = '\0';
-//   /* Convert namep from execution charset to SOURCE_CHARSET.  */
-//   cpp_string istr, ostr;
-//   istr.len = strlen (namep) + 1;
-//   istr.text = (const unsigned char *) namep;
-//   if (!cpp_translate_string (parse_in, &istr, &ostr,
-// 			     j == 2 ? CPP_STRING : CPP_UTF8STRING,
-// 			     true))
-//     {
-//       if (len >= 64)
-// 	XDELETEVEC (namep);
-//       if (j == 1)
-// 	return throw_exception (loc, ctx,
-// 				"conversion from ordinary literal "
-// 				"encoding to source charset "
-// 				"failed", fun, non_constant_p,
-// 				jump_target);
-//       else
-// 	return throw_exception (loc, ctx,
-// 				"conversion from UTF-8 encoding to "
-// 				"source charset failed",
-// 				fun, non_constant_p, jump_target);
-//     }
-//   if (len >= 64)
-//     XDELETEVEC (namep);
-//   return ostr;
-// }
+static blatruc_ret_t
+blatruc(location_t loc, const constexpr_ctx *ctx,
+	tree f,
+	bool *non_constant_p,
+	bool *overflow_p, tree *jump_target, tree fun)
+{
+  if (!CLASS_TYPE_P (TREE_TYPE (f)))
+    return {};
+  tree fns = lookup_qualified_name (TREE_TYPE (f),
+				    get_identifier ("c_str"));
+  if (error_operand_p (fns))
+    return {};
+  f = build_new_method_call (f, fns, NULL, NULL_TREE, LOOKUP_NORMAL,
+			     NULL, tf_warning_or_error);
+  if (error_operand_p (f))
+    return {};
+  f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
+				    non_constant_p, overflow_p,
+				    jump_target);
+  if (*jump_target || *non_constant_p)
+    return NULL_TREE;
+  STRIP_NOPS (f);
+  if (TREE_CODE (f) != ADDR_EXPR)
+    return {};
+  f = TREE_OPERAND (f, 0);
+  f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
+				    non_constant_p, overflow_p,
+				    jump_target);
+  if (*jump_target || *non_constant_p)
+    return NULL_TREE;
+  if (TREE_CODE (f) != CONSTRUCTOR
+      || TREE_CODE (TREE_TYPE (f)) != ARRAY_TYPE)
+    return {};
+  tree eltt = TYPE_MAIN_VARIANT (TREE_TYPE (TREE_TYPE (f)));
+  if (eltt != char8_type_node && eltt != char_type_node)
+    return {};
+  tree field, value;
+  unsigned k;
+  unsigned HOST_WIDE_INT l = 0;
+  bool ntmbs = false;
+  FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
+    if (!tree_fits_shwi_p (value))
+      return {};
+    else if (field == NULL_TREE)
+      {
+	if (integer_zerop (value))
+	  {
+	    ntmbs = true;
+	    break;
+	  }
+	++l;
+      }
+    else if (TREE_CODE (field) == RANGE_EXPR)
+      {
+	tree lo = TREE_OPERAND (field, 0);
+	tree hi = TREE_OPERAND (field, 1);
+	if (!tree_fits_uhwi_p (lo) || !tree_fits_uhwi_p (hi))
+	  return {};
+	if (integer_zerop (value))
+	  {
+	    l = tree_to_uhwi (lo);
+	    ntmbs = true;
+	    break;
+	  }
+	l = tree_to_uhwi (hi) + 1;
+      }
+    else if (tree_fits_uhwi_p (field))
+      {
+	l = tree_to_uhwi (field);
+	if (integer_zerop (value))
+	  {
+	    ntmbs = true;
+	    break;
+	  }
+	++l;
+      }
+    else
+      return {};
+  if (!ntmbs || l > INT_MAX - 1)
+    return {};
+  char *namep;
+  unsigned len = l;
+  if (l < 64)
+    namep = XALLOCAVEC (char, l + 1);
+  else
+    namep = XNEWVEC (char, l + 1);
+  memset (namep, 0, l + 1);
+  l = 0;
+  FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
+    if (integer_zerop (value))
+      break;
+    else if (field == NULL_TREE)
+      {
+	namep[l] = tree_to_shwi (value);
+	++l;
+      }
+    else if (TREE_CODE (field) == RANGE_EXPR)
+      {
+	tree lo = TREE_OPERAND (field, 0);
+	tree hi = TREE_OPERAND (field, 1);
+	unsigned HOST_WIDE_INT m = tree_to_uhwi (hi);
+	for (l = tree_to_uhwi (lo); l <= m; ++l)
+	  namep[l] = tree_to_shwi (value);
+      }
+    else
+      {
+	l = tree_to_uhwi (field);
+	namep[l++] = tree_to_shwi (value);
+      }
+  namep[len] = '\0';
+  /* Convert namep from execution charset to SOURCE_CHARSET.  */
+  cpp_string istr, ostr;
+  istr.len = strlen (namep) + 1;
+  istr.text = (const unsigned char *) namep;
+  if (!cpp_translate_string (parse_in, &istr, &ostr,
+			     eltt == char_type_node ? CPP_STRING : CPP_UTF8STRING,
+			     true))
+    {
+      if (len >= 64)
+	XDELETEVEC (namep);
+      if (eltt == char_type_node)
+	return throw_exception (loc, ctx,
+				"conversion from ordinary literal "
+				"encoding to source charset "
+				"failed", fun, non_constant_p,
+				jump_target);
+      else
+	return throw_exception (loc, ctx,
+				"conversion from UTF-8 encoding to "
+				"source charset failed",
+				fun, non_constant_p, jump_target);
+    }
+  if (len >= 64)
+    XDELETEVEC (namep);
+  return ostr;
+}
 
 static tree
 eval_data_member_spec (location_t loc, const constexpr_ctx *ctx,
@@ -5837,134 +5836,13 @@ eval_data_member_spec (location_t loc, const constexpr_ctx *ctx,
 	      continue;
 	    }
 	  /* _M_u8s/_M_s handling is the same except for encoding.  */
-	  if (!CLASS_TYPE_P (TREE_TYPE (f)))
+	  blatruc_ret_t blatruc_ret = blatruc(loc, ctx, f, non_constant_p, overflow_p, jump_target, fun);
+	  if (blatruc_ret.discriminant == 0)
 	    goto fail;
-	  tree fns = lookup_qualified_name (TREE_TYPE (f),
-					    get_identifier ("c_str"));
-	  if (error_operand_p (fns))
-	    goto fail;
-	  f = build_new_method_call (f, fns, NULL, NULL_TREE, LOOKUP_NORMAL,
-				     NULL, tf_warning_or_error);
-	  if (error_operand_p (f))
-	    goto fail;
-	  f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
-					    non_constant_p, overflow_p,
-					    jump_target);
-	  if (*jump_target || *non_constant_p)
-	    return NULL_TREE;
-	  STRIP_NOPS (f);
-	  if (TREE_CODE (f) != ADDR_EXPR)
-	    goto fail;
-	  f = TREE_OPERAND (f, 0);
-	  f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
-					    non_constant_p, overflow_p,
-					    jump_target);
-	  if (*jump_target || *non_constant_p)
-	    return NULL_TREE;
-	  if (TREE_CODE (f) != CONSTRUCTOR
-	      || TREE_CODE (TREE_TYPE (f)) != ARRAY_TYPE)
-	    goto fail;
-	  tree eltt = TYPE_MAIN_VARIANT (TREE_TYPE (TREE_TYPE (f)));
-	  if (eltt != (j == 1 ? char8_type_node : char_type_node))
-	    goto fail;
-	  tree field, value;
-	  unsigned k;
-	  unsigned HOST_WIDE_INT l = 0;
-	  bool ntmbs = false;
-	  FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
-	    if (!tree_fits_shwi_p (value))
-	      goto fail;
-	    else if (field == NULL_TREE)
-	      {
-		if (integer_zerop (value))
-		  {
-		    ntmbs = true;
-		    break;
-		  }
-		++l;
-	      }
-	    else if (TREE_CODE (field) == RANGE_EXPR)
-	      {
-		tree lo = TREE_OPERAND (field, 0);
-		tree hi = TREE_OPERAND (field, 1);
-		if (!tree_fits_uhwi_p (lo) || !tree_fits_uhwi_p (hi))
-		  goto fail;
-		if (integer_zerop (value))
-		  {
-		    l = tree_to_uhwi (lo);
-		    ntmbs = true;
-		    break;
-		  }
-		l = tree_to_uhwi (hi) + 1;
-	      }
-	    else if (tree_fits_uhwi_p (field))
-	      {
-		l = tree_to_uhwi (field);
-		if (integer_zerop (value))
-		  {
-		    ntmbs = true;
-		    break;
-		  }
-		++l;
-	      }
-	    else
-	      goto fail;
-	  if (!ntmbs || l > INT_MAX - 1)
-	    goto fail;
-	  char *namep;
-	  unsigned len = l;
-	  if (l < 64)
-	    namep = XALLOCAVEC (char, l + 1);
-	  else
-	    namep = XNEWVEC (char, l + 1);
-	  memset (namep, 0, l + 1);
-	  l = 0;
-	  FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
-	    if (integer_zerop (value))
-	      break;
-	    else if (field == NULL_TREE)
-	      {
-		namep[l] = tree_to_shwi (value);
-		++l;
-	      }
-	    else if (TREE_CODE (field) == RANGE_EXPR)
-	      {
-		tree lo = TREE_OPERAND (field, 0);
-		tree hi = TREE_OPERAND (field, 1);
-		unsigned HOST_WIDE_INT m = tree_to_uhwi (hi);
-		for (l = tree_to_uhwi (lo); l <= m; ++l)
-		  namep[l] = tree_to_shwi (value);
-	      }
-	    else
-	      {
-		l = tree_to_uhwi (field);
-		namep[l++] = tree_to_shwi (value);
-	      }
-	  namep[len] = '\0';
-	  /* Convert namep from execution charset to SOURCE_CHARSET.  */
-	  cpp_string istr, ostr;
-	  istr.len = strlen (namep) + 1;
-	  istr.text = (const unsigned char *) namep;
-	  if (!cpp_translate_string (parse_in, &istr, &ostr,
-				     j == 2 ? CPP_STRING : CPP_UTF8STRING,
-				     true))
-	    {
-	      if (len >= 64)
-		XDELETEVEC (namep);
-	      if (j == 1)
-		return throw_exception (loc, ctx,
-					"conversion from ordinary literal "
-					"encoding to source charset "
-					"failed", fun, non_constant_p,
-					jump_target);
-	      else
-		return throw_exception (loc, ctx,
-					"conversion from UTF-8 encoding to "
-					"source charset failed",
-					fun, non_constant_p, jump_target);
-	    }
-	  if (len >= 64)
-	    XDELETEVEC (namep);
+	  if (blatruc_ret.discriminant == 1)
+	    return blatruc_ret.fail2;
+	  cpp_string ostr = blatruc_ret.success;
+	  
 	  if (!cpp_valid_identifier (parse_in, ostr.text))
 	    return throw_exception (loc, ctx,
 				    "name is not a valid identifier",
