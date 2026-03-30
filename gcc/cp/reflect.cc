@@ -5549,6 +5549,158 @@ eval_variant_alternative (location_t loc, const constexpr_ctx *ctx, tree i,
    -- if options.alignment contains a value, it is an alignment value not less
       than alignment_of(type).  */
 
+
+// struct blatruc_ret_t {
+//   int discriminant;
+//   union {
+//     char fail;
+//     tree fail2;
+//     cpp_string success;
+//   };
+
+//   blatruc_ret_t() : discriminant(0), fail('\0') {}
+//   blatruc_ret_t(tree t) : discriminant(1), fail2(t) {}
+//   blatruc_ret_t(cpp_string ostr) : discriminant(2), success(ostr) {}
+// };
+
+// static blatruc_ret_t
+// blatruc(const constexpr_ctx *ctx,
+// 			  tree f, cpp_string& ostr,
+// 			  bool *non_constant_p,
+// 			  bool *overflow_p, tree *jump_target)
+// {
+//   if (!CLASS_TYPE_P (TREE_TYPE (f)))
+//     return {};
+//   tree fns = lookup_qualified_name (TREE_TYPE (f),
+// 				    get_identifier ("c_str"));
+//   if (error_operand_p (fns))
+//     return {};
+//   f = build_new_method_call (f, fns, NULL, NULL_TREE, LOOKUP_NORMAL,
+// 			     NULL, tf_warning_or_error);
+//   if (error_operand_p (f))
+//     return {};
+
+//   f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
+// 				    non_constant_p, overflow_p,
+// 				    jump_target);
+//   if (*jump_target || *non_constant_p)
+//     return NULL_TREE;
+//   STRIP_NOPS (f);
+//   if (TREE_CODE (f) != ADDR_EXPR)
+//     return {};
+//   f = TREE_OPERAND (f, 0);
+//   f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
+// 				    non_constant_p, overflow_p,
+// 				    jump_target);
+//   if (*jump_target || *non_constant_p)
+//     return NULL_TREE;
+//   if (TREE_CODE (f) != CONSTRUCTOR
+//       || TREE_CODE (TREE_TYPE (f)) != ARRAY_TYPE)
+//     return {};
+//   tree eltt = TYPE_MAIN_VARIANT (TREE_TYPE (TREE_TYPE (f)));
+//   if (eltt != (j == 1 ? char8_type_node : char_type_node))
+//     return {};
+//   tree field, value;
+//   unsigned k;
+//   unsigned HOST_WIDE_INT l = 0;
+//   bool ntmbs = false;
+//   FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
+//     if (!tree_fits_shwi_p (value))
+//       return {};
+//     else if (field == NULL_TREE)
+//       {
+// 	if (integer_zerop (value))
+// 	  {
+// 	    ntmbs = true;
+// 	    break;
+// 	  }
+// 	++l;
+//       }
+//     else if (TREE_CODE (field) == RANGE_EXPR)
+//       {
+// 	tree lo = TREE_OPERAND (field, 0);
+// 	tree hi = TREE_OPERAND (field, 1);
+// 	if (!tree_fits_uhwi_p (lo) || !tree_fits_uhwi_p (hi))
+// 	  return {};
+// 	if (integer_zerop (value))
+// 	  {
+// 	    l = tree_to_uhwi (lo);
+// 	    ntmbs = true;
+// 	    break;
+// 	  }
+// 	l = tree_to_uhwi (hi) + 1;
+//       }
+//     else if (tree_fits_uhwi_p (field))
+//       {
+// 	l = tree_to_uhwi (field);
+// 	if (integer_zerop (value))
+// 	  {
+// 	    ntmbs = true;
+// 	    break;
+// 	  }
+// 	++l;
+//       }
+//     else
+//       return {};
+//   if (!ntmbs || l > INT_MAX - 1)
+//     return {};
+//   char *namep;
+//   unsigned len = l;
+//   if (l < 64)
+//     namep = XALLOCAVEC (char, l + 1);
+//   else
+//     namep = XNEWVEC (char, l + 1);
+//   memset (namep, 0, l + 1);
+//   l = 0;
+//   FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (f), k, field, value)
+//     if (integer_zerop (value))
+//       break;
+//     else if (field == NULL_TREE)
+//       {
+// 	namep[l] = tree_to_shwi (value);
+// 	++l;
+//       }
+//     else if (TREE_CODE (field) == RANGE_EXPR)
+//       {
+// 	tree lo = TREE_OPERAND (field, 0);
+// 	tree hi = TREE_OPERAND (field, 1);
+// 	unsigned HOST_WIDE_INT m = tree_to_uhwi (hi);
+// 	for (l = tree_to_uhwi (lo); l <= m; ++l)
+// 	  namep[l] = tree_to_shwi (value);
+//       }
+//     else
+//       {
+// 	l = tree_to_uhwi (field);
+// 	namep[l++] = tree_to_shwi (value);
+//       }
+//   namep[len] = '\0';
+//   /* Convert namep from execution charset to SOURCE_CHARSET.  */
+//   cpp_string istr, ostr;
+//   istr.len = strlen (namep) + 1;
+//   istr.text = (const unsigned char *) namep;
+//   if (!cpp_translate_string (parse_in, &istr, &ostr,
+// 			     j == 2 ? CPP_STRING : CPP_UTF8STRING,
+// 			     true))
+//     {
+//       if (len >= 64)
+// 	XDELETEVEC (namep);
+//       if (j == 1)
+// 	return throw_exception (loc, ctx,
+// 				"conversion from ordinary literal "
+// 				"encoding to source charset "
+// 				"failed", fun, non_constant_p,
+// 				jump_target);
+//       else
+// 	return throw_exception (loc, ctx,
+// 				"conversion from UTF-8 encoding to "
+// 				"source charset failed",
+// 				fun, non_constant_p, jump_target);
+//     }
+//   if (len >= 64)
+//     XDELETEVEC (namep);
+//   return ostr;
+// }
+
 static tree
 eval_data_member_spec (location_t loc, const constexpr_ctx *ctx,
 		       tree type, tree opts, bool *non_constant_p,
@@ -6180,6 +6332,73 @@ eval_define_aggregate (location_t loc, const constexpr_ctx *ctx,
   TYPE_FIELDS (type) = fields;
   finish_struct (type, NULL_TREE);
   return get_reflection_raw (loc, orig_type);
+}
+
+static tree
+eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
+		      tree type, tree member_name, tree member_value, reflect_kind kind,
+		      bool *non_constant_p, bool *overflow_p, tree *jump_target, tree fun)
+{
+  if (!CLASS_TYPE_P (type))
+    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not a class type",
+			    fun, non_constant_p, jump_target);
+  if (typedef_variant_p (type))
+    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not a class type",
+			    fun, non_constant_p, jump_target);    
+  if (cv_qualified_p (type))
+    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is cv-qualified type",
+			    fun, non_constant_p, jump_target);
+  if (!COMPLETE_TYPE_P (type))
+    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is incomplete type",
+			    fun, non_constant_p, jump_target);
+  if (TYPE_BEING_DEFINED (type))
+    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not defined yet",
+			    fun, non_constant_p, jump_target);
+
+  // TODO: figure out how to extract the string from member_name
+
+  // gcc_assert (EXPR_P (member_name));
+
+  // {
+  //   tree f = build3 (COMPONENT_REF, TREE_TYPE (fields[j]), deref,
+  // 		     fields[j], NULL_TREE);
+  //   gcc_assert (CLASS_TYPE_P (TREE_TYPE (f)));
+  //   tree fns = lookup_qualified_name (TREE_TYPE (f),
+  // 				      get_identifier ("c_str"));
+  //   gcc_assert (!error_operand_p (fns));
+  //   f = build_new_method_call (f, fns, NULL, NULL_TREE, LOOKUP_NORMAL,
+  // 			       NULL, tf_warning_or_error);
+  //   gcc_assert (error_operand_p (f));
+  //   f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
+  // 				      non_constant_p, overflow_p,
+  // 				      jump_target);
+  //   if (*jump_target || *non_constant_p)
+  //     return NULL_TREE;
+  //   STRIP_NOPS (f);
+  //   gcc_assert (TREE_CODE (f) == ADDR_EXPR);
+  //   f = TREE_OPERAND (f, 0);
+  //   f = cxx_eval_constant_expression (ctx, f, vc_prvalue,
+  // 				      non_constant_p, overflow_p,
+  // 				      jump_target);
+  //   if (*jump_target || *non_constant_p)
+  //     return NULL_TREE;
+  //   gcc_assert (TREE_CODE (f) == CONSTRUCTOR
+  // 		&& TREE_CODE (TREE_TYPE (f)) == ARRAY_TYPE);
+  //   tree eltt = TYPE_MAIN_VARIANT (TREE_TYPE (TREE_TYPE (f)));
+  //   gcc_assert (eltt == char_type_node);
+    
+  // }
+
+  if (kind != REFLECT_VALUE && kind != REFLECT_OBJECT)
+    return throw_exception (loc, ctx, "ivl_inject_csdm: third argument is not a value or reference",
+			    fun, non_constant_p, jump_target);
+  tree member_type = TREE_TYPE (member_value);
+  if (!literal_type_p (member_type))
+    return throw_exception (loc, ctx, "ivl_inject_csdm: third argument type is not literal",
+			    fun, non_constant_p, jump_target);
+  
+  return throw_exception (loc, ctx, "ivl_inject_csdm: not implemented yet, sorry",
+			  fun, non_constant_p, jump_target);
 }
 
 /* Implement std::meta::reflect_constant_string.
@@ -7399,7 +7618,7 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
     }
   tree h = NULL_TREE, h1 = NULL_TREE, hvec = NULL_TREE, expr = NULL_TREE;
   tree type = NULL_TREE, ht, info;
-  reflect_kind kind = REFLECT_UNDEF;
+  reflect_kind kind = REFLECT_UNDEF, kind1 = REFLECT_UNDEF;
   for (int argno = 0; argno < 3; ++argno)
     switch (METAFN_KIND_ARG (argno))
       {
@@ -7407,7 +7626,7 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	break;
       case METAFN_KIND_ARG_INFO:
       case METAFN_KIND_ARG_TINFO:
-	gcc_assert (argno < 2);
+	// gcc_assert (argno < 2);
 	info = get_info (ctx, call, argno, non_constant_p, overflow_p,
 			 jump_target);
 	if (*jump_target || *non_constant_p)
@@ -7423,7 +7642,10 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	    h = ht;
 	  }
 	else
-	  h1 = ht;
+	  {
+	    kind1 = REFLECT_EXPR_KIND (info);
+	    h1 = ht;
+	  }
 	break;
       case METAFN_KIND_ARG_REFLECTION_RANGE:
 	gcc_assert (argno == 1);
@@ -7456,6 +7678,7 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	if (*jump_target || *non_constant_p)
 	  return NULL_TREE;
 	break;
+      case METAFN_KIND_ARG_STRING_VIEW:
       case METAFN_KIND_ARG_UNSIGNED:
       case METAFN_KIND_ARG_ACCESS_CONTEXT:
       case METAFN_KIND_ARG_DATA_MEMBER_OPTIONS:
@@ -7756,6 +7979,9 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
       return eval_is_data_member_spec (h, kind);
     case METAFN_DEFINE_AGGREGATE:
       return eval_define_aggregate (loc, ctx, h, hvec, call, non_constant_p);
+    case METAFN_IVL_INJECT_CSDM:
+      return eval_ivl_inject_csdm (loc, ctx, h, expr, h1, kind1, non_constant_p,
+				   overflow_p, jump_target, fun);
     case METAFN_IS_VOID_TYPE:
       return eval_is_void_type (h);
     case METAFN_IS_NULL_POINTER_TYPE:

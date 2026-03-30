@@ -168,6 +168,7 @@ enum metafn_code {
   METAFN_DATA_MEMBER_SPEC,
   METAFN_IS_DATA_MEMBER_SPEC,
   METAFN_DEFINE_AGGREGATE,
+  METAFN_IVL_INJECT_CSDM,
   METAFN_IS_VOID_TYPE,
   METAFN_IS_NULL_POINTER_TYPE,
   METAFN_IS_INTEGRAL_TYPE,
@@ -310,6 +311,7 @@ enum metafn_kind_ret {
   METAFN_KIND_RET_VECTOR_INFO,
   METAFN_KIND_RET_ACCESS_CONTEXT,
   METAFN_KIND_RET_TEMPLATE_PARM,
+  METAFN_KIND_RET_VOID,
 };
 static_assert (METAFN_KIND_RET_TEMPLATE_PARM <= (int) METAFN_KIND_MASK, "");
 
@@ -328,7 +330,8 @@ enum metafn_kind_arg {
   METAFN_KIND_ARG_ACCESS_CONTEXT,
   METAFN_KIND_ARG_DATA_MEMBER_OPTIONS,
   METAFN_KIND_ARG_TEMPLATE_PARM, /* Some other template parameter.  */
-  METAFN_KIND_ARG_TEMPLATE_PARM_REF /* Reference to template parameter.  */
+  METAFN_KIND_ARG_TEMPLATE_PARM_REF, /* Reference to template parameter.  */
+  METAFN_KIND_ARG_STRING_VIEW
 };
 static_assert (METAFN_KIND_ARG_TEMPLATE_PARM_REF <= (int) METAFN_KIND_MASK,
 	       "");
@@ -367,6 +370,10 @@ enum metafn_kind_args {
   METAFN_KIND_ARGS_TINFO_TINFO_REFLECTION_RANGET
     = (METAFN_KIND_ARG_REFLECTION_RANGET << (2 * METAFN_KIND_SHIFT))
       | METAFN_KIND_ARGS_TINFO_TINFO,
+  METAFN_KIND_ARGS_TINFO_STRING_VIEW_INFO
+    = (METAFN_KIND_ARG_INFO << (2 * METAFN_KIND_SHIFT))
+      | (METAFN_KIND_ARG_STRING_VIEW << METAFN_KIND_SHIFT)
+      | METAFN_KIND_ARG_TINFO
 };
 
 /* This encodes metafn_kind_ret in the low METAFN_KIND_SHIFT bits, then
@@ -470,7 +477,10 @@ enum metafn_kind {
       | METAFN_KIND_RET_STRING_VIEW,
   METAFN_KIND_U8STRING_VIEW_INPUT_RANGE
     = (METAFN_KIND_ARGS_INPUT_RANGE << METAFN_KIND_SHIFT)
-      | METAFN_KIND_RET_U8STRING_VIEW
+      | METAFN_KIND_RET_U8STRING_VIEW,
+  METAFN_KIND_VOID_TINFO_STRING_VIEW_INFO
+    = (METAFN_KIND_ARGS_TINFO_STRING_VIEW_INFO << METAFN_KIND_SHIFT)
+      | METAFN_KIND_RET_VOID,
 };
 #line 448 "metafns.gperf"
 struct metafn_info
@@ -583,7 +593,7 @@ metafn_lookup::find (const char *str, size_t len)
 {
   enum
     {
-      TOTAL_KEYWORDS = 234,
+      TOTAL_KEYWORDS = 235,
       MIN_WORD_LENGTH = 4,
       MAX_WORD_LENGTH = 40,
       MIN_HASH_VALUE = 39,
@@ -1063,7 +1073,9 @@ metafn_lookup::find (const char *str, size_t len)
 #line 481 "metafns.gperf"
       {"is_user_provided", METAFN_IS_USER_PROVIDED, METAFN_KIND_BOOL_INFO,},
 #line 611 "metafns.gperf"
-      {"is_unsigned_type", METAFN_IS_UNSIGNED_TYPE, METAFN_KIND_BOOL_TINFO,}
+      {"is_unsigned_type", METAFN_IS_UNSIGNED_TYPE, METAFN_KIND_BOOL_TINFO,},
+#line 694 "metafns.gperf"
+      {"ivl_inject_csdm", METAFN_IVL_INJECT_CSDM, METAFN_KIND_VOID_TINFO_STRING_VIEW_INFO,}
     };
 #if (defined __GNUC__ && __GNUC__ + (__GNUC_MINOR__ >= 6) > 4) || (defined __clang__ && __clang_major__ >= 3)
 #pragma GCC diagnostic pop
@@ -1127,7 +1139,7 @@ metafn_lookup::find (const char *str, size_t len)
       202, 203,  -1,  -1, 204,  -1,  -1,  -1,  -1,  -1,
        -1, 205, 206,  -1,  -1,  -1,  -1,  -1,  -1, 207,
       208, 209,  -1,  -1,  -1, 210,  -1,  -1,  -1,  -1,
-       -1,  -1, 211,  -1,  -1,  -1,  -1, 212,  -1,  -1,
+       -1,  -1, 211, 234,  -1,  -1,  -1, 212,  -1,  -1,
        -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
        -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
        -1, 213,  -1,  -1,  -1, 214,  -1, 215, 216,  -1,
