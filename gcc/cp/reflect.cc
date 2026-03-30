@@ -32,6 +32,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "gimplify.h" // for unshare_expr
 #include "metafns.h"
 
+#include "decl.h"
+
 static tree eval_is_function_type (tree);
 static tree eval_is_object_type (location_t, tree);
 static tree eval_reflect_constant (location_t, const constexpr_ctx *, tree,
@@ -6182,6 +6184,182 @@ eval_define_aggregate (location_t loc, const constexpr_ctx *ctx,
   return get_reflection_raw (loc, orig_type);
 }
 
+static tree
+eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx, tree type,
+                      tree member_name, tree member_value, reflect_kind kind,
+                      bool *non_constant_p, bool *overflow_p,
+                      tree *jump_target, tree fun)
+{
+  if (!CLASS_TYPE_P (type))
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: first argument is not class type", fun,
+        non_constant_p, jump_target);
+  if (typedef_variant_p (type))
+    return throw_exception (loc, ctx,
+                            "ivl_inject_csdm: first argument is alias type",
+                            fun, non_constant_p, jump_target);
+  if (cv_qualified_p (type))
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: first argument is cv-qualified type", fun,
+        non_constant_p, jump_target);
+  if (!COMPLETE_TYPE_P (type))
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: first argument is incomplete type", fun,
+        non_constant_p, jump_target);
+  if (TYPE_BEING_DEFINED (type))
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: first argument is not defined yet", fun,
+        non_constant_p, jump_target);
+
+  // noop?
+  type = complete_type (type);
+
+  cpp_string ostr;
+  struct deleter_t
+  {
+    void *ptr;
+    ~deleter_t ()
+    {
+      if (ptr)
+        XDELETEVEC (ptr);
+    }
+  } deleter{ NULL };
+  {
+    cexpr_str cstr (member_name);
+    if (!cstr.type_check (loc, false))
+      {
+        *non_constant_p = true;
+        return NULL_TREE;
+      }
+    const char *msg = NULL;
+    int len = 0;
+    if (!cstr.extract (loc, msg, len, ctx, non_constant_p, overflow_p,
+                       jump_target))
+      {
+        *non_constant_p = true;
+        return NULL_TREE;
+      }
+    // possible it's not null terminated :D
+    char *txt = XNEWVEC (char, len + 1);
+    memcpy (txt, msg, len);
+    txt[len] = '\0';
+    ostr.text = (unsigned char *)txt;
+    ostr.len = len;
+    deleter.ptr = txt;
+  }
+
+  if (strlen ((const char *)ostr.text) != ostr.len)
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: second argument contains null character",
+        fun, non_constant_p, jump_target);
+  if (strcmp ((const char *)ostr.text, TYPE_NAME_STRING (type)) == 0)
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: second argument is equal to name of type",
+        fun, non_constant_p, jump_target);
+  if (!cpp_valid_identifier (parse_in, ostr.text))
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: second argument is not a valid identifier",
+        fun, non_constant_p, jump_target);
+
+  tree id = get_identifier ((const char *)ostr.text);
+  switch (get_identifier_kind (id))
+    {
+    case cik_keyword:
+      return throw_exception (loc, ctx,
+                              "ivl_inject_csdm: second argument is a keyword",
+                              fun, non_constant_p, jump_target);
+    case cik_trait:
+      return throw_exception (
+          loc, ctx, "ivl_inject_csdm: second argument is a built-in trait",
+          fun, non_constant_p, jump_target);
+    default:
+      break;
+    }
+
+  {
+    tree lookup = lookup_qualified_name (type, id);
+    if (!error_operand_p (lookup))
+      return throw_exception (
+          loc, ctx,
+          "ivl_inject_csdm: second argument is already a name in type", fun,
+          non_constant_p, jump_target);
+  }
+  if (kind != REFLECT_VALUE && kind != REFLECT_OBJECT)
+    return throw_exception (
+        loc, ctx,
+        "ivl_inject_csdm: third argument is not a value or reference", fun,
+        non_constant_p, jump_target);
+  tree member_type = TREE_TYPE (member_value);
+  if (!literal_type_p (member_type))
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: third argument type is not literal", fun,
+        non_constant_p, jump_target);
+
+  tree saved = current_class_type;
+  current_class_type = type;
+
+  cp_declarator declarator;
+
+  declarator.kind = cdk_id;
+  declarator.parenthesized = UNKNOWN_LOCATION;
+  declarator.attributes = NULL_TREE;
+  declarator.std_attributes = NULL_TREE;
+  declarator.declarator = NULL;
+  declarator.parameter_pack_p = false;
+  declarator.id_loc = UNKNOWN_LOCATION;
+  declarator.init_loc = UNKNOWN_LOCATION;
+
+  declarator.u.id.qualifying_scope = NULL_TREE;
+  declarator.u.id.unqualified_name = id;
+  declarator.u.id.sfk = sfk_none;
+  declarator.id_loc = loc;
+
+  cp_decl_specifier_seq decl_specifiers;
+  memset (&decl_specifiers, 0, sizeof (cp_decl_specifier_seq));
+  decl_specifiers.type = member_type;
+  decl_specifiers.storage_class = sc_static;
+  decl_specifiers.locations[ds_constexpr] = location_of (member_value);
+  decl_specifiers.locations[ds_inline] = location_of (member_value);
+
+  tree decl = grokdeclarator (&declarator, &decl_specifiers, FIELD,
+                              SD_INITIALIZED, NULL);
+  gcc_assert (decl != error_mark_node);
+  gcc_assert (decl != NULL_TREE);
+
+  DECL_CONTEXT (decl) = current_class_type;
+  DECL_INITIALIZED_IN_CLASS_P (decl) = true;
+  TREE_PRIVATE (decl) = false;
+  TREE_PROTECTED (decl) = false;
+
+  gcc_assert (decl != error_mark_node);
+
+  finish_initialized_static_member (decl, member_value, NULL_TREE);
+
+  DECL_ATTRIBUTES (decl) = NULL_TREE;
+  SET_DECL_LANGUAGE (decl, lang_cplusplus);
+
+  DECL_CHAIN (decl) = TYPE_FIELDS (current_class_type);
+  TYPE_FIELDS (current_class_type) = decl;
+
+  current_class_type = saved;
+
+  gcc_assert (decl != error_mark_node);
+
+  vec<tree, va_gc> *member_vec = CLASSTYPE_MEMBER_VEC (type);
+  if (member_vec)
+    {
+      tree *slot = find_member_slot (type, id);
+      gcc_assert (slot);
+
+      tree ret = ovl_insert (decl, *slot, 0);
+      gcc_assert (ret != NULL_TREE);
+      gcc_assert (ret != error_mark_node);
+      *slot = ret;
+    }
+
+  return boolean_true_node;
+}
+
 /* Implement std::meta::reflect_constant_string.
    Let CharT be ranges::range_value_t<R>.
    Mandates: CharT is one of char, wchar_t, char8_t, char16_t, char32_t.
@@ -7399,7 +7577,7 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
     }
   tree h = NULL_TREE, h1 = NULL_TREE, hvec = NULL_TREE, expr = NULL_TREE;
   tree type = NULL_TREE, ht, info;
-  reflect_kind kind = REFLECT_UNDEF;
+  reflect_kind kind = REFLECT_UNDEF, kind1 = REFLECT_UNDEF;
   for (int argno = 0; argno < 3; ++argno)
     switch (METAFN_KIND_ARG (argno))
       {
@@ -7407,7 +7585,6 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	break;
       case METAFN_KIND_ARG_INFO:
       case METAFN_KIND_ARG_TINFO:
-	gcc_assert (argno < 2);
 	info = get_info (ctx, call, argno, non_constant_p, overflow_p,
 			 jump_target);
 	if (*jump_target || *non_constant_p)
@@ -7423,7 +7600,10 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	    h = ht;
 	  }
 	else
-	  h1 = ht;
+	  {
+	    kind1 = REFLECT_EXPR_KIND (info);
+	    h1 = ht;
+	  }
 	break;
       case METAFN_KIND_ARG_REFLECTION_RANGE:
 	gcc_assert (argno == 1);
@@ -7451,6 +7631,15 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	gcc_assert (argno == 0);
 	expr = get_nth_callarg (call, 0);
 	expr = cxx_eval_constant_expression (ctx, expr, vc_prvalue,
+					     non_constant_p, overflow_p,
+					     jump_target);
+	if (*jump_target || *non_constant_p)
+	  return NULL_TREE;
+	break;
+      case METAFN_KIND_ARG_STRING_VIEW:
+	gcc_assert (argno == 1);
+	expr = convert_from_reference (get_nth_callarg (call, argno));
+	expr = cxx_eval_constant_expression (ctx, expr, vc_glvalue,
 					     non_constant_p, overflow_p,
 					     jump_target);
 	if (*jump_target || *non_constant_p)
@@ -7756,6 +7945,9 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
       return eval_is_data_member_spec (h, kind);
     case METAFN_DEFINE_AGGREGATE:
       return eval_define_aggregate (loc, ctx, h, hvec, call, non_constant_p);
+    case METAFN_IVL_INJECT_CSDM:
+      return eval_ivl_inject_csdm (loc, ctx, h, expr, h1, kind1, non_constant_p,
+				   overflow_p, jump_target, fun);
     case METAFN_IS_VOID_TYPE:
       return eval_is_void_type (h);
     case METAFN_IS_NULL_POINTER_TYPE:
