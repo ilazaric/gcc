@@ -6431,6 +6431,7 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
 
 #endif
 
+  return boolean_true_node;
   return void_type_node;
   return throw_exception (loc, ctx, "ivl_inject_csdm: not implemented yet, sorry",
 			  fun, non_constant_p, jump_target);
