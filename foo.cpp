@@ -1,0 +1,42 @@
+// #include "/home/ilazaric/repos/ALL/submodules/gcc/libstdc++-v3/include/std/meta"
+#include <meta>
+
+struct S {};
+
+// int x;
+
+// struct T;
+
+// consteval {
+//   std::meta::data_member_options opts;
+//   opts.name = "hiii";
+//   data_member_spec(^^int, opts);
+// }
+
+// consteval {
+//   char msg[] = "hello\0world";
+//   std::string_view sv(msg, sizeof(msg)-1);
+//   sv = msg;
+//   ivl_inject_csdm(^^S,
+// 		  sv
+// 		  // "hiii"
+// 		  ,
+// 		  // ^^int
+// 		  // std::meta::reflect_object(x)
+// 		  std::meta::reflect_constant(123)
+// 		  );
+// }
+
+consteval {
+  for (auto mem : members_of(^^S, std::meta::access_context::unchecked()))
+    __builtin_constexpr_diag(32, "", display_string_of(mem));
+}
+
+// consteval {
+//   char bar[] = "hello\0world";
+//   std::string_view foo(bar, sizeof(bar) - 1);
+//   __builtin_constexpr_diag(0, "", foo);
+// }
+
+// static_assert(^^decltype(S::hiii) == ^^const int);
+// static_assert(S::hiii == 123);

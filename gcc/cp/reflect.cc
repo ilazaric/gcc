@@ -6407,17 +6407,31 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
 
   DECL_CONTEXT (decl) = current_class_type;
   DECL_INITIALIZED_IN_CLASS_P (decl) = true;
+  TREE_PRIVATE (decl) = false;
+  TREE_PROTECTED (decl) = false;
 
   // tree decl = start_initialized_static_member (declarator, &decl_specifiers, NULL_TREE);
   gcc_assert (decl != error_mark_node);
 
   // finish_initialized_static_member(decl, initializer, asm_specification);
 
+  DECL_ATTRIBUTES (decl) = NULL_TREE;
+  SET_DECL_LANGUAGE (decl, lang_cplusplus);
+  
+  DECL_CHAIN (decl) = TYPE_FIELDS (current_class_type);
+  TYPE_FIELDS (current_class_type) = decl;
+
   current_class_type = saved;
 
   gcc_assert(decl != error_mark_node);
+
+  // add_decl_to_level (, decl);
+  // TREE_CHAIN (decl) = b->names;
+  // b->names = decl;
+
 #endif
-  
+
+  return void_type_node;
   return throw_exception (loc, ctx, "ivl_inject_csdm: not implemented yet, sorry",
 			  fun, non_constant_p, jump_target);
 

@@ -29599,13 +29599,11 @@ pop_injected_parms (void)
 
 static void ivl_describe_class(tree t, const char* desc)
 {
-#if IVL
-  tree x;
-  error("IVL_DESCRIBE[%s]: %T", desc, t);
-  for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x))
-    error("IVL_DESCRIBE: field: `%D`", x);
-  error("IVL_DESCRIBE: done\n\n");
-#endif
+  // tree x;
+  // error("IVL_DESCRIBE[%s]: %T", desc, t);
+  // for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x))
+  //   error("IVL_DESCRIBE: field: `%D`", x);
+  // error("IVL_DESCRIBE: done\n\n");
 }
 
 /* Parse a class-specifier.
@@ -29714,7 +29712,7 @@ cp_parser_class_specifier (cp_parser* parser)
 	nested_name_specifier_p = false;
     }
   type = begin_class_definition (type);
-  ivl_describe_class(type, "after definition start");
+  // ivl_describe_class(type, "after definition start");
 
   if (type == error_mark_node)
     /* If the type is erroneous, skip the entire body of the class.  */
@@ -29723,7 +29721,7 @@ cp_parser_class_specifier (cp_parser* parser)
     /* Parse the member-specification.  */
     cp_parser_member_specification_opt (parser);
 
-  ivl_describe_class(type, "after member_spec");
+  // ivl_describe_class(type, "after member_spec");
 
   /* Register any "begin declare variant" functions in this class, since
      references to the base function can only be resolved after the
@@ -29745,7 +29743,7 @@ cp_parser_class_specifier (cp_parser* parser)
     attributes = cp_parser_gnu_attributes_opt (parser);
   if (type != error_mark_node)
     {
-      ivl_describe_class(type, "before struct");
+      // ivl_describe_class(type, "before struct");
       type = finish_struct (type, attributes);
       finish_lambda_scope ();
     }
@@ -31387,9 +31385,11 @@ cp_parser_member_declaration (cp_parser* parser)
 		    initializer = cp_parser_save_nsdmi (parser);
 		  else
 		    {
+		      ivl_describe_class(current_class_type, "before start");
 		      decl = start_initialized_static_member (declarator,
 							      &decl_specifiers,
 							      attributes);
+		      ivl_describe_class(current_class_type, "after start");
 		      start_lambda_scope (decl);
 
 		      if (cxx_dialect >= cxx11)
@@ -31407,11 +31407,13 @@ cp_parser_member_declaration (cp_parser* parser)
 
 		      finish_lambda_scope ();
 		      if (IVL) {
-			error("IVL: declfin !!! nope %s (%d)", __func__, __LINE__);
+			error("IVL: declfin !!! %s (%d)", __func__, __LINE__);
 			error("IVL: decl type %T (%d)", decl_specifiers.type, __LINE__);
+			ivl_describe_class(current_class_type, "before fin");
 		      }
 		      finish_initialized_static_member (decl, initializer,
 							asm_specification);
+			ivl_describe_class(current_class_type, "after fin");
 		      decl_was_initialized_p = true;
 		    }
 		}

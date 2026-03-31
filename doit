@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+# set -x
+
+MAKELOG="/tmp/make.log"
+REBUILD=1
+GDB=0
+
+while [[ $# -gt 0 ]]
+do
+    case "$1" in
+        --no-rebuild)
+            REBUILD=0
+            shift
+            ;;
+        --gdb)
+            GDB=1
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+if [ $# != 1 ]
+then
+    echo "incorrect arguments"
+    exit 1
+fi
+
+if [ $REBUILD == 1 ]
+then
+    echo "rebuilding ..."
+    if make -C "/home/ilazaric/repos/ALL/submodules/objdir/gcc" -j 8 &> "$MAKELOG"
+    then
+        echo "rebuild successful!"
+        rm "$MAKELOG"
+    else
+        echo "ERROR: !!! rebuild failed !!!"
+        echo "ERROR: dumping make log $MAKELOG (not removing it) ..."
+        cat "$MAKELOG"
+        exit 1
+    fi
+fi
+
+export IVL=
+if [ $GDB == 0 ]
+then
+    exec /home/ilazaric/repos/ALL/submodules/objdir/gcc/gcc/cc1plus \
+        -quiet \
+        -imultiarch \
+        x86_64-linux-gnu \
+        -D_GNU_SOURCE \
+        "$1" \
+        -quiet \
+        -dumpdir a- \
+        -dumpbase \
+        "$1" \
+        -dumpbase-ext \
+        .cpp \
+        -mtune=generic \
+        -march=x86-64 \
+        -std=c++26 \
+        -freflection \
+        -fsyntax-only \
+        -o /dev/null
+else
+    exec gdb --args \
+         /home/ilazaric/repos/ALL/submodules/objdir/gcc/gcc/cc1plus \
+        -quiet \
+        -imultiarch \
+        x86_64-linux-gnu \
+        -D_GNU_SOURCE \
+        "$1" \
+        -quiet \
+        -dumpdir a- \
+        -dumpbase \
+        "$1" \
+        -dumpbase-ext \
+        .cpp \
+        -mtune=generic \
+        -march=x86-64 \
+        -std=c++26 \
+        -freflection \
+        -fsyntax-only \
+        -o /dev/null
+fi

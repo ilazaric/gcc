@@ -3984,6 +3984,8 @@ check_module_override (tree decl, tree mvec, bool hiding,
 tree
 pushdecl (tree decl, bool hiding)
 {
+  // NB: MY STUFF NOT GOING THROUGH pushdecl
+  // if (getenv("IVL")) error("IVL: pushdecl %D", decl);
   auto_cond_timevar tv (TV_NAME_LOOKUP);
 
   if (decl == error_mark_node)

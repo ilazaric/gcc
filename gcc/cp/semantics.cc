@@ -4243,9 +4243,18 @@ begin_class_definition (tree t)
 
 /* Finish the member declaration given by DECL.  */
 
+static void ivl_count(tree t, const char* desc)
+{
+  // tree x;
+  // int cnt = 0;
+  // for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x)) ++cnt;
+  // error("IVL_COUNT[%s]: %T -- %d", desc, t, cnt);
+}
+
 void
 finish_member_declaration (tree decl)
 {
+  ivl_count(current_class_type, "fmd: start");
   if (decl == error_mark_node || decl == NULL_TREE)
     return;
 
@@ -4273,6 +4282,8 @@ finish_member_declaration (tree decl)
       TREE_PRIVATE (DECL_TEMPLATE_RESULT (decl)) = TREE_PRIVATE (decl);
       TREE_PROTECTED (DECL_TEMPLATE_RESULT (decl)) = TREE_PROTECTED (decl);
     }
+
+  ivl_count(current_class_type, "fmd: after access");
 
   /* Mark the DECL as a member of the current class, unless it's
      a member of an enumeration.  */
@@ -4302,6 +4313,8 @@ finish_member_declaration (tree decl)
         DECL_ATTRIBUTES (decl) = NULL_TREE;
     }
 
+  ivl_count(current_class_type, "fmd: mid");
+
   /* [dcl.link]
 
      A C language linkage is ignored for the names of class members
@@ -4321,6 +4334,7 @@ finish_member_declaration (tree decl)
 	   || pushdecl_class_level (decl))
     add = true;
 
+  ivl_count(current_class_type, "fmd: before add");
   if (add)
     {
       /* All TYPE_DECLs go at the end of TYPE_FIELDS.  Ordinary fields
@@ -4342,9 +4356,11 @@ finish_member_declaration (tree decl)
 	  TYPE_FIELDS (current_class_type) = decl;
 	}
 
+      ivl_count(current_class_type, "fmd: near end of add");
       maybe_add_class_template_decl_list (current_class_type, decl,
 					  /*friend_p=*/0);
     }
+  ivl_count(current_class_type, "fmd: after add");
 }
 
 /* Finish processing a complete template declaration.  The PARMS are

@@ -1467,13 +1467,23 @@ grokfield (const cp_declarator *declarator,
    member.  Used to be able to push the new decl before parsing the
    initialiser.  */
 
+static void ivl_count(tree t, const char* desc)
+{
+  // tree x;
+  // int cnt = 0;
+  // for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x)) ++cnt;
+  // error("IVL_COUNT[%s]: %T -- %d", desc, t, cnt);
+}
+
 tree
 start_initialized_static_member (const cp_declarator *declarator,
 				 cp_decl_specifier_seq *declspecs,
 				 tree attrlist)
 {
+  ivl_count(current_class_type, "before grok");
   tree value = grokdeclarator (declarator, declspecs, FIELD, SD_INITIALIZED,
 			       &attrlist);
+  ivl_count(current_class_type, "after grok");
   if (!value || error_operand_p (value))
     return error_mark_node;
   if (TREE_CODE (value) == TYPE_DECL)
@@ -1505,8 +1515,10 @@ start_initialized_static_member (const cp_declarator *declarator,
     }
   gcc_checking_assert (VAR_P (value));
 
+  ivl_count(current_class_type, "before stuff");
   DECL_CONTEXT (value) = current_class_type;
   DECL_INITIALIZED_IN_CLASS_P (value) = true;
+  ivl_count(current_class_type, "after stuff");
 
   if (processing_template_decl)
     {
@@ -1518,6 +1530,7 @@ start_initialized_static_member (const cp_declarator *declarator,
   if (attrlist)
     cplus_decl_attributes (&value, attrlist, 0);
 
+  ivl_count(current_class_type, "before maybe");
   /* When defining a template we need to register the TEMPLATE_DECL.  */
   tree maybe_template = value;
   if (template_parm_scope_p ())
@@ -1527,8 +1540,10 @@ start_initialized_static_member (const cp_declarator *declarator,
       else
 	maybe_template = NULL_TREE;
     }
+  ivl_count(current_class_type, "between maybe");
   if (maybe_template)
     finish_member_declaration (maybe_template);
+  ivl_count(current_class_type, "after maybe");
 
   return value;
 }
