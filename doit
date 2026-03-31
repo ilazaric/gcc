@@ -84,6 +84,7 @@ else
         -march=x86-64 \
         -std=c++26 \
         -freflection \
-        -fsyntax-only \
-        -o /dev/null
+        -o foo.out
+        # -fsyntax-only \
+        # -o /dev/null
 fi

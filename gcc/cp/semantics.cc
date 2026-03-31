@@ -13112,11 +13112,15 @@ finish_static_assert (tree condition, tree message, location_t location,
       return;
     }
 
+  if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
+
   /* Fold the expression and convert it to a boolean value. */
   condition = contextual_conv_bool (condition, complain);
+  if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
   condition = fold_non_dependent_expr (condition, complain,
 				       /*manifestly_const_eval=*/true);
 
+  if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
   if (TREE_CODE (condition) == INTEGER_CST && !integer_zerop (condition))
     /* Do nothing; the condition is satisfied. */
     ;
@@ -13124,6 +13128,7 @@ finish_static_assert (tree condition, tree message, location_t location,
     {
       iloc_sentinel ils (location);
 
+      if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
       if (integer_zerop (condition))
 	{
 	  /* CWG2518: static_assert failure in a template is not IFNDR.  */
@@ -13163,6 +13168,8 @@ finish_static_assert (tree condition, tree message, location_t location,
 	}
       else if (condition && condition != error_mark_node)
 	{
+	  // TODO: fails here
+	  if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
 	  error ("non-constant condition for static assertion");
 	  if (require_rvalue_constant_expression (condition))
 	    cxx_constant_value (condition);

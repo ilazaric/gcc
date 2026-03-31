@@ -1,7 +1,10 @@
 // #include "/home/ilazaric/repos/ALL/submodules/gcc/libstdc++-v3/include/std/meta"
 #include <meta>
 
-struct S {};
+struct S {
+  static inline int x = 1;
+  static constexpr int y = 2;
+};
 
 // int x;
 
@@ -13,23 +16,36 @@ struct S {};
 //   data_member_spec(^^int, opts);
 // }
 
-// consteval {
-//   char msg[] = "hello\0world";
-//   std::string_view sv(msg, sizeof(msg)-1);
-//   sv = msg;
-//   ivl_inject_csdm(^^S,
-// 		  sv
-// 		  // "hiii"
-// 		  ,
-// 		  // ^^int
-// 		  // std::meta::reflect_object(x)
-// 		  std::meta::reflect_constant(123)
-// 		  );
-// }
+consteval {
+  char msg[] = "hello\0world";
+  std::string_view sv(msg, sizeof(msg)-1);
+  sv = msg;
+  ivl_inject_csdm(^^S,
+		  sv
+		  // "hiii"
+		  ,
+		  // ^^int
+		  // std::meta::reflect_object(x)
+		  std::meta::reflect_constant(123)
+		  );
+}
 
 consteval {
   for (auto mem : members_of(^^S, std::meta::access_context::unchecked()))
     __builtin_constexpr_diag(32, "", display_string_of(mem));
+}
+
+static_assert(^^decltype(S::hello) == ^^const int);
+static_assert(&S::hello != nullptr);
+static_assert(parent_of(^^S::hello) == ^^S);
+static_assert(is_static_member(^^S::hello));
+
+static_assert(S::hello == 123);
+
+#include <iostream>
+
+int main() {
+  std::cout << S::hello << std::endl;
 }
 
 // consteval {

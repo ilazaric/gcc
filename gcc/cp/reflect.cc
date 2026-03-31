@@ -6394,7 +6394,7 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   decl_specifiers.storage_class = sc_static;
   // ^ cp_parser_set_storage_class (parser, decl_specifiers, RID_STATIC,
   // 			       token);
-  decl_specifiers.locations[ds_constexpr] = loc;
+  decl_specifiers.locations[ds_constexpr] = location_of(member_value);
   
   // grokdeclarator?
   tree decl = grokdeclarator (declarator,
@@ -6413,7 +6413,7 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   // tree decl = start_initialized_static_member (declarator, &decl_specifiers, NULL_TREE);
   gcc_assert (decl != error_mark_node);
 
-  // finish_initialized_static_member(decl, initializer, asm_specification);
+  finish_initialized_static_member(decl, member_value, NULL_TREE);
 
   DECL_ATTRIBUTES (decl) = NULL_TREE;
   SET_DECL_LANGUAGE (decl, lang_cplusplus);
@@ -7719,7 +7719,7 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	break;
       case METAFN_KIND_ARG_STRING_VIEW:
 	gcc_assert (argno == 1);
-	gcc_assert (TREE_CODE (call) == CALL_EXPR);
+	// gcc_assert (TREE_CODE (call) == CALL_EXPR);
 	expr = convert_from_reference (get_nth_callarg (call, argno));
 	expr = cxx_eval_constant_expression (ctx, expr,
 					     vc_glvalue,
@@ -7732,7 +7732,7 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
       case METAFN_KIND_ARG_ACCESS_CONTEXT:
       case METAFN_KIND_ARG_DATA_MEMBER_OPTIONS:
 	gcc_assert (argno == 1);
-	gcc_assert (TREE_CODE (call) == CALL_EXPR);
+	// gcc_assert (TREE_CODE (call) == CALL_EXPR);
 	expr = convert_from_reference (get_nth_callarg (call, argno));
 	expr = cxx_eval_constant_expression (ctx, expr,
 					     vc_prvalue,
