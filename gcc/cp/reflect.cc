@@ -32,6 +32,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "gimplify.h" // for unshare_expr
 #include "metafns.h"
 
+#include "decl.h"
+
 static tree eval_is_function_type (tree);
 static tree eval_is_object_type (location_t, tree);
 static tree eval_reflect_constant (location_t, const constexpr_ctx *, tree,
@@ -6355,9 +6357,73 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
 			    fun, non_constant_p, jump_target);
 
   // error_at(loc, "parsed name: [%s]", ostr.text);
+
+  // TODO: okay, parsed everything, now need to inject it, somehow ...
+  // ....: for that i need to understand what is a struct, how the csdm would get parsed,
+  // ....: what does finishing a struct mean, ...
+
+#if 1
+  tree saved = current_class_type;
+  current_class_type = type;
+
+  // declarator
+  // cp_parser_declarator
+  // cp_parser_direct_declarator
+  // make_id_declarator
+  cp_declarator decl_value;
+  cp_declarator* declarator = &decl_value; // = make_id_declarator(NULL_TREE, id, sfk_none, loc);
+
+  declarator->kind = cdk_id;
+  declarator->parenthesized = UNKNOWN_LOCATION;
+  declarator->attributes = NULL_TREE;
+  declarator->std_attributes = NULL_TREE;
+  declarator->declarator = NULL;
+  declarator->parameter_pack_p = false;
+  declarator->id_loc = UNKNOWN_LOCATION;
+  declarator->init_loc = UNKNOWN_LOCATION;
+
+  declarator->u.id.qualifying_scope = NULL_TREE;
+  declarator->u.id.unqualified_name = id;
+  declarator->u.id.sfk = sfk_none;
+  declarator->id_loc = loc;
+  
+  // cp_declarator* declarator = NULL;
+  cp_decl_specifier_seq decl_specifiers; // TODO: init
+  memset (&decl_specifiers, 0, sizeof (cp_decl_specifier_seq));
+  decl_specifiers.type = member_type;
+  decl_specifiers.storage_class = sc_static;
+  // ^ cp_parser_set_storage_class (parser, decl_specifiers, RID_STATIC,
+  // 			       token);
+  decl_specifiers.locations[ds_constexpr] = loc;
+  
+  // grokdeclarator?
+  tree decl = grokdeclarator (declarator,
+			      &decl_specifiers,
+			      FIELD,
+			      SD_INITIALIZED,
+			      NULL);
+  gcc_assert (decl != error_mark_node);
+  gcc_assert (decl != NULL_TREE);
+
+  DECL_CONTEXT (decl) = current_class_type;
+  DECL_INITIALIZED_IN_CLASS_P (decl) = true;
+
+  // tree decl = start_initialized_static_member (declarator, &decl_specifiers, NULL_TREE);
+  gcc_assert (decl != error_mark_node);
+
+  // finish_initialized_static_member(decl, initializer, asm_specification);
+
+  current_class_type = saved;
+
+  gcc_assert(decl != error_mark_node);
+#endif
   
   return throw_exception (loc, ctx, "ivl_inject_csdm: not implemented yet, sorry",
 			  fun, non_constant_p, jump_target);
+
+  // DECL_CONTEXT (decl) = type;
+  // pushdecl(decl);
+  // TODO: test what happens
 }
 
 /* Implement std::meta::reflect_constant_string.

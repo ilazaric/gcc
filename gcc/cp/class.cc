@@ -39,6 +39,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "asan.h"
 #include "contracts.h"
 
+#define IVL 0
+
 /* Id for dumping the class hierarchy.  */
 int class_dump_id;
 
@@ -7958,6 +7960,15 @@ void
 finish_struct_1 (tree t)
 {
   tree x;
+
+  if (IVL) {
+    error("IVL: type: `%T`", t);
+    for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x)) {
+      // fprintf(stderr, "IVL: start of `finish_struct_1` -- type field\n");
+      error("IVL: field: `%D`", x);
+    }
+  }
+
   /* A TREE_LIST.  The TREE_VALUE of each node is a FUNCTION_DECL.  */
   tree virtuals = NULL_TREE;
 
@@ -8093,9 +8104,11 @@ finish_struct_1 (tree t)
 
   /* Clear DECL_IN_AGGR_P for all member functions.  Complete the rtl
      for any static member objects of the type we're working on.  */
-  for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x))
+  for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x)) {
+    if (IVL) fprintf(stderr, "IVL: type field\n");
     if (DECL_DECLARES_FUNCTION_P (x))
       {
+	if (IVL) fprintf(stderr, "IVL: type field -- function\n");
 	/* Synthesize constexpr defaulted comparisons.  */
 	if (!DECL_ARTIFICIAL (x)
 	    && DECL_DEFAULTED_IN_CLASS_P (x)
@@ -8105,8 +8118,13 @@ finish_struct_1 (tree t)
       }
     else if (VAR_P (x) && TREE_STATIC (x)
 	     && TREE_TYPE (x) != error_mark_node
-	     && same_type_p (TYPE_MAIN_VARIANT (TREE_TYPE (x)), t))
+	     && same_type_p (TYPE_MAIN_VARIANT (TREE_TYPE (x)), t)) {
+      if (IVL) fprintf(stderr, "IVL: type field -- variable?\n");
       SET_DECL_MODE (x, TYPE_MODE (t));
+    } else {
+      if (IVL) fprintf(stderr, "IVL: type field -- nothing?\n");
+    }
+  }
 
   /* Complain if one of the field types requires lower visibility.  */
   constrain_class_visibility (t);

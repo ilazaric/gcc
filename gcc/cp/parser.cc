@@ -1913,10 +1913,13 @@ make_declarator (cp_declarator_kind kind)
    UNQUALIFIED_NAME.  SFK indicates the kind of special function this
    is, if any.   */
 
+#define IVL 0
+
 static cp_declarator *
 make_id_declarator (tree qualifying_scope, tree unqualified_name,
 		    special_function_kind sfk, location_t id_location)
 {
+  // error("IVL: make_id_declarator: qual-scope type: %T", qualifying_scope);
   cp_declarator *declarator;
 
   /* It is valid to write:
@@ -27087,6 +27090,7 @@ cp_parser_direct_declarator (cp_parser* parser,
 		      *ctor_dtor_or_conv_p = -1;
 		  }
 	      }
+	    // REMEMBER!
 	    declarator = make_id_declarator (qualifying_scope,
 					     unqualified_name,
 					     sfk, token->location);
@@ -29593,6 +29597,17 @@ pop_injected_parms (void)
   current_class_ptr = current_class_ref = NULL_TREE;
 }
 
+static void ivl_describe_class(tree t, const char* desc)
+{
+#if IVL
+  tree x;
+  error("IVL_DESCRIBE[%s]: %T", desc, t);
+  for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x))
+    error("IVL_DESCRIBE: field: `%D`", x);
+  error("IVL_DESCRIBE: done\n\n");
+#endif
+}
+
 /* Parse a class-specifier.
 
    class-specifier:
@@ -29699,6 +29714,7 @@ cp_parser_class_specifier (cp_parser* parser)
 	nested_name_specifier_p = false;
     }
   type = begin_class_definition (type);
+  ivl_describe_class(type, "after definition start");
 
   if (type == error_mark_node)
     /* If the type is erroneous, skip the entire body of the class.  */
@@ -29706,6 +29722,8 @@ cp_parser_class_specifier (cp_parser* parser)
   else
     /* Parse the member-specification.  */
     cp_parser_member_specification_opt (parser);
+
+  ivl_describe_class(type, "after member_spec");
 
   /* Register any "begin declare variant" functions in this class, since
      references to the base function can only be resolved after the
@@ -29727,6 +29745,7 @@ cp_parser_class_specifier (cp_parser* parser)
     attributes = cp_parser_gnu_attributes_opt (parser);
   if (type != error_mark_node)
     {
+      ivl_describe_class(type, "before struct");
       type = finish_struct (type, attributes);
       finish_lambda_scope ();
     }
@@ -30856,6 +30875,9 @@ cp_parser_member_declaration (cp_parser* parser)
   int saved_pedantic, saved_long_long;
   bool saved_colon_corrects_to_scope_p = parser->colon_corrects_to_scope_p;
 
+  if (IVL)
+  error("IVL: start of cp_parser_member_declaration");
+
   /* Check for the `__extension__' keyword.  */
   if (cp_parser_extension_opt (parser, &saved_pedantic, &saved_long_long))
     {
@@ -30952,6 +30974,8 @@ cp_parser_member_declaration (cp_parser* parser)
   if (cp_parser_using_declaration (parser, /*access_declaration=*/true))
     goto out;
 
+  if (IVL)
+  error("IVL: %s (%d)", __func__, __LINE__);
   /* Parse the decl-specifier-seq.  */
   decl_spec_token_start = cp_lexer_peek_token (parser->lexer);
   cp_parser_decl_specifier_seq (parser,
@@ -30959,6 +30983,7 @@ cp_parser_member_declaration (cp_parser* parser)
 				 | CP_PARSER_FLAGS_TYPENAME_OPTIONAL),
 				&decl_specifiers,
 				&declares_class_or_enum);
+  if (IVL) error("IVL: %s (%d)", __func__, __LINE__);
 
   if (decl_specifiers.attributes && (flag_openmp || flag_openmp_simd))
     cp_parser_handle_directive_omp_attributes (parser,
@@ -30982,6 +31007,7 @@ cp_parser_member_declaration (cp_parser* parser)
 		      || cp_lexer_nth_token_is (parser->lexer, 2,
 						CPP_COMMA))))))
     {
+      if (IVL) error("IVL: %s (%d)", __func__, __LINE__);
       /* If there was no decl-specifier-seq, and the next token is a
 	 `;', then we have something like:
 
@@ -31013,6 +31039,7 @@ cp_parser_member_declaration (cp_parser* parser)
 	}
       else
 	{
+	  if (IVL) error("IVL: %s (%d)", __func__, __LINE__);
 	  /* See if this declaration is a friend.  */
 	  friend_p = cp_parser_friend_p (&decl_specifiers);
 	  /* If there were decl-specifiers, check to see if there was
@@ -31134,6 +31161,7 @@ cp_parser_member_declaration (cp_parser* parser)
     }
   else
     {
+      if (IVL) error("IVL: %s (%d)", __func__, __LINE__);
       bool assume_semicolon = false;
 
       /* Clear attributes from the decl_specifiers but keep them
@@ -31330,6 +31358,7 @@ cp_parser_member_declaration (cp_parser* parser)
 		 since the member declaration should be in scope while
 		 its initializer is processed.  As such we might build
 		 decl pre-emptively.  */
+	      if (IVL) error("IVL: initializer? %s (%d)", __func__, __LINE__);
 	      if (cp_lexer_next_token_is (parser->lexer, CPP_EQ))
 		{
 		  /* In [class.mem]:
@@ -31377,6 +31406,10 @@ cp_parser_member_declaration (cp_parser* parser)
 			initializer = cp_parser_constant_initializer (parser);
 
 		      finish_lambda_scope ();
+		      if (IVL) {
+			error("IVL: declfin !!! nope %s (%d)", __func__, __LINE__);
+			error("IVL: decl type %T (%d)", decl_specifiers.type, __LINE__);
+		      }
 		      finish_initialized_static_member (decl, initializer,
 							asm_specification);
 		      decl_was_initialized_p = true;
@@ -31397,6 +31430,7 @@ cp_parser_member_declaration (cp_parser* parser)
 		      start_lambda_scope (decl);
 		      initializer = cp_parser_initializer (parser);
 		      finish_lambda_scope ();
+		      if (IVL) error("IVL: declfin %s (%d)", __func__, __LINE__);
 		      finish_initialized_static_member (decl, initializer,
 							asm_specification);
 		      decl_was_initialized_p = true;
@@ -31513,6 +31547,7 @@ cp_parser_member_declaration (cp_parser* parser)
 	      /* Create the declaration.  */
 	      if (!decl_was_initialized_p)
 		{
+		  if (IVL) error("IVL: declfin %s (%d)", __func__, __LINE__);
 		  decl = grokfield (declarator, &decl_specifiers,
 				    initializer, /*init_const_expr_p=*/true,
 				    asm_specification, attributes);
@@ -31527,6 +31562,7 @@ cp_parser_member_declaration (cp_parser* parser)
 		}
 	    }
 
+	  if (IVL) error("IVL: %s (%d)", __func__, __LINE__);
 	  cp_finalize_omp_declare_simd (parser, decl);
 	  cp_finalize_oacc_routine (parser, decl, false);
 
@@ -31579,6 +31615,7 @@ cp_parser_member_declaration (cp_parser* parser)
 
 	  if (decl && !decl_was_initialized_p)
 	    {
+	      if (IVL) error("IVL: declfin %s (%d)", __func__, __LINE__);
 	      /* Add DECL to the list of members.  */
 	      if (!friend_p
 		  /* Explicitly include, eg, NSDMIs, for better error
@@ -31601,6 +31638,7 @@ cp_parser_member_declaration (cp_parser* parser)
 
   cp_parser_require (parser, CPP_SEMICOLON, RT_SEMICOLON);
  out:
+  if (IVL) error("IVL: outlabel %s (%d)", __func__, __LINE__);
   parser->colon_corrects_to_scope_p = saved_colon_corrects_to_scope_p;
   cp_finalize_omp_declare_simd (parser, &odsd);
 }

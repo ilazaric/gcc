@@ -742,6 +742,8 @@ delete_sanity (location_t loc, tree exp, tree size, bool doing_vec,
 /* Report an error if the indicated template declaration is not the
    sort of thing that should be a member template.  */
 
+#define IVL 0
+
 void
 check_member_template (tree tmpl)
 {
@@ -1179,6 +1181,8 @@ finish_static_data_member_decl (tree decl,
     return;
 
   DECL_CONTEXT (decl) = current_class_type;
+
+  if (IVL) error("IVL: decl finished %D", decl);
 
   /* We cannot call pushdecl here, because that would fill in the
      TREE_CHAIN of our decl.  Instead, we modify cp_finish_decl to do
