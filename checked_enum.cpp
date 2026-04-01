@@ -97,4 +97,5 @@ int main() {
   auto r = checked_colors::BLUE;
   std::cout << display_string_of(^^decltype(r)) << std::endl;
   std::cout << std::to_underlying(r.e) << std::endl;
+  std::cout << (void*)&checked_colors::GREEN << std::endl;
 }
