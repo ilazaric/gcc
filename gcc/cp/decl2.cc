@@ -742,8 +742,6 @@ delete_sanity (location_t loc, tree exp, tree size, bool doing_vec,
 /* Report an error if the indicated template declaration is not the
    sort of thing that should be a member template.  */
 
-#define IVL 0 // (getenv("IVL"))
-
 void
 check_member_template (tree tmpl)
 {
@@ -1175,15 +1173,12 @@ finish_static_data_member_decl (tree decl,
 				tree asmspec_tree,
 				int flags)
 {
-  if (IVL) error("IVL: decl finished top %D", decl);
   if (DECL_TEMPLATE_INSTANTIATED (decl))
     /* We already needed to instantiate this, so the processing in this
        function is unnecessary/wrong.  */
     return;
 
   DECL_CONTEXT (decl) = current_class_type;
-
-  if (IVL) error("IVL: decl finished %D", decl);
 
   /* We cannot call pushdecl here, because that would fill in the
      TREE_CHAIN of our decl.  Instead, we modify cp_finish_decl to do
@@ -1468,23 +1463,13 @@ grokfield (const cp_declarator *declarator,
    member.  Used to be able to push the new decl before parsing the
    initialiser.  */
 
-static void ivl_count(tree t, const char* desc)
-{
-  // tree x;
-  // int cnt = 0;
-  // for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x)) ++cnt;
-  // error("IVL_COUNT[%s]: %T -- %d", desc, t, cnt);
-}
-
 tree
 start_initialized_static_member (const cp_declarator *declarator,
 				 cp_decl_specifier_seq *declspecs,
 				 tree attrlist)
 {
-  ivl_count(current_class_type, "before grok");
   tree value = grokdeclarator (declarator, declspecs, FIELD, SD_INITIALIZED,
 			       &attrlist);
-  ivl_count(current_class_type, "after grok");
   if (!value || error_operand_p (value))
     return error_mark_node;
   if (TREE_CODE (value) == TYPE_DECL)
@@ -1516,10 +1501,8 @@ start_initialized_static_member (const cp_declarator *declarator,
     }
   gcc_checking_assert (VAR_P (value));
 
-  ivl_count(current_class_type, "before stuff");
   DECL_CONTEXT (value) = current_class_type;
   DECL_INITIALIZED_IN_CLASS_P (value) = true;
-  ivl_count(current_class_type, "after stuff");
 
   if (processing_template_decl)
     {
@@ -1531,7 +1514,6 @@ start_initialized_static_member (const cp_declarator *declarator,
   if (attrlist)
     cplus_decl_attributes (&value, attrlist, 0);
 
-  ivl_count(current_class_type, "before maybe");
   /* When defining a template we need to register the TEMPLATE_DECL.  */
   tree maybe_template = value;
   if (template_parm_scope_p ())
@@ -1541,10 +1523,8 @@ start_initialized_static_member (const cp_declarator *declarator,
       else
 	maybe_template = NULL_TREE;
     }
-  ivl_count(current_class_type, "between maybe");
   if (maybe_template)
     finish_member_declaration (maybe_template);
-  ivl_count(current_class_type, "after maybe");
 
   return value;
 }
@@ -1570,10 +1550,8 @@ is_static_data_member_initialized_in_class (tree decl)
 void
 finish_initialized_static_member (tree decl, tree init, tree asmspec)
 {
-  if (IVL) error("IVL: decl finished toptop %C %D", TREE_CODE(decl), decl);
   if (decl == error_mark_node)
     return;
-  if (IVL) error("IVL: decl finished post error %C %D", TREE_CODE(decl), decl);
   gcc_checking_assert (is_static_data_member_initialized_in_class (decl));
 
   int flags;
