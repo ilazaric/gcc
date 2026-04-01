@@ -6277,22 +6277,21 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   tree saved = current_class_type;
   current_class_type = type;
 
-  cp_declarator decl_value;
-  cp_declarator* declarator = &decl_value;
+  cp_declarator declarator;
 
-  declarator->kind = cdk_id;
-  declarator->parenthesized = UNKNOWN_LOCATION;
-  declarator->attributes = NULL_TREE;
-  declarator->std_attributes = NULL_TREE;
-  declarator->declarator = NULL;
-  declarator->parameter_pack_p = false;
-  declarator->id_loc = UNKNOWN_LOCATION;
-  declarator->init_loc = UNKNOWN_LOCATION;
+  declarator.kind = cdk_id;
+  declarator.parenthesized = UNKNOWN_LOCATION;
+  declarator.attributes = NULL_TREE;
+  declarator.std_attributes = NULL_TREE;
+  declarator.declarator = NULL;
+  declarator.parameter_pack_p = false;
+  declarator.id_loc = UNKNOWN_LOCATION;
+  declarator.init_loc = UNKNOWN_LOCATION;
 
-  declarator->u.id.qualifying_scope = NULL_TREE;
-  declarator->u.id.unqualified_name = id;
-  declarator->u.id.sfk = sfk_none;
-  declarator->id_loc = loc;
+  declarator.u.id.qualifying_scope = NULL_TREE;
+  declarator.u.id.unqualified_name = id;
+  declarator.u.id.sfk = sfk_none;
+  declarator.id_loc = loc;
   
   cp_decl_specifier_seq decl_specifiers;
   memset (&decl_specifiers, 0, sizeof (cp_decl_specifier_seq));
@@ -6301,7 +6300,7 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   decl_specifiers.locations[ds_constexpr] = location_of(member_value);
   decl_specifiers.locations[ds_inline] = location_of(member_value);
   
-  tree decl = grokdeclarator (declarator,
+  tree decl = grokdeclarator (&declarator,
 			      &decl_specifiers,
 			      FIELD,
 			      SD_INITIALIZED,
