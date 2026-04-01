@@ -5551,7 +5551,6 @@ eval_variant_alternative (location_t loc, const constexpr_ctx *ctx, tree i,
    -- if options.alignment contains a value, it is an alignment value not less
       than alignment_of(type).  */
 
-
 static tree
 eval_data_member_spec (location_t loc, const constexpr_ctx *ctx,
 		       tree type, tree opts, bool *non_constant_p,
@@ -5667,10 +5666,8 @@ eval_data_member_spec (location_t loc, const constexpr_ctx *ctx,
 	    goto fail;
 	  if (j && j == (fields[0] == boolean_true_node ? 2 : 1))
 	    continue;
-	  // error_at(loc, "foo type: %T", TREE_TYPE(fields[j]));
 	  tree f = build3 (COMPONENT_REF, TREE_TYPE (fields[j]), deref,
 			   fields[j], NULL_TREE);
-	  // error_at(loc, "foo type: %T", TREE_TYPE(f));
 	  if (j == 0)
 	    {
 	      /* The _M_is_u8 handling is simple.  */
@@ -6241,6 +6238,10 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     return throw_exception (loc, ctx,
 			    "ivl_inject_csdm: second argument contains null character",
 			    fun, non_constant_p, jump_target);
+  if (strcmp((const char*)ostr.text, TYPE_NAME_STRING(type)) == 0)
+    return throw_exception (loc, ctx,
+			    "ivl_inject_csdm: second argument is equal to name of type",
+			    fun, non_constant_p, jump_target);
   if (!cpp_valid_identifier (parse_in, ostr.text))
     return throw_exception (loc, ctx,
 			    "ivl_inject_csdm: second argument is not a valid identifier",
@@ -6298,6 +6299,7 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   decl_specifiers.type = member_type;
   decl_specifiers.storage_class = sc_static;
   decl_specifiers.locations[ds_constexpr] = location_of(member_value);
+  decl_specifiers.locations[ds_inline] = location_of(member_value);
   
   tree decl = grokdeclarator (declarator,
 			      &decl_specifiers,

@@ -78,6 +78,10 @@ enum class colors { RED, GREEN, BLUE };
 
 using checked_colors = checked_enum<colors>;
 
+struct znj {
+  static constexpr auto RED = colors::RED;
+};
+
 consteval {
   for (auto mem : members_of(^^checked_colors, std::meta::access_context::unchecked()))
     __builtin_constexpr_diag(32, "", display_string_of(mem));

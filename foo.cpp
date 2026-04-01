@@ -1,13 +1,18 @@
 // #include "/home/ilazaric/repos/ALL/submodules/gcc/libstdc++-v3/include/std/meta"
 #include <meta>
 
-template<typename>
-struct St {
+// template<typename>
+// struct St {
+//   static inline int x = 1;
+//   static constexpr int y = 2;
+// };
+
+// using S = St<int>;
+
+struct S {
   static inline int x = 1;
   static constexpr int y = 2;
 };
-
-using S = St<int>;
 
 // int x;
 
