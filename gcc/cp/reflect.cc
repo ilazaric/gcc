@@ -6185,77 +6185,93 @@ eval_define_aggregate (location_t loc, const constexpr_ctx *ctx,
 }
 
 static tree
-eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
-		      tree type, tree member_name, tree member_value, reflect_kind kind,
-		      bool *non_constant_p, bool *overflow_p, tree *jump_target, tree fun)
+eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx, tree type,
+                      tree member_name, tree member_value, reflect_kind kind,
+                      bool *non_constant_p, bool *overflow_p,
+                      tree *jump_target, tree fun)
 {
   if (!CLASS_TYPE_P (type))
-    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not class type",
-			    fun, non_constant_p, jump_target);
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: first argument is not class type", fun,
+        non_constant_p, jump_target);
   if (typedef_variant_p (type))
-    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is alias type",
-			    fun, non_constant_p, jump_target);    
+    return throw_exception (loc, ctx,
+                            "ivl_inject_csdm: first argument is alias type",
+                            fun, non_constant_p, jump_target);
   if (cv_qualified_p (type))
-    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is cv-qualified type",
-			    fun, non_constant_p, jump_target);
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: first argument is cv-qualified type", fun,
+        non_constant_p, jump_target);
   if (!COMPLETE_TYPE_P (type))
-    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is incomplete type",
-			    fun, non_constant_p, jump_target);
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: first argument is incomplete type", fun,
+        non_constant_p, jump_target);
   if (TYPE_BEING_DEFINED (type))
-    return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not defined yet",
-			    fun, non_constant_p, jump_target);
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: first argument is not defined yet", fun,
+        non_constant_p, jump_target);
 
   // noop?
-  type = complete_type(type);
+  type = complete_type (type);
 
   cpp_string ostr;
-  struct deleter_t {
-    void* ptr;
-    ~deleter_t() { if (ptr) XDELETEVEC(ptr); }
-  } deleter{NULL};
+  struct deleter_t
   {
-    cexpr_str cstr(member_name);
-    if (!cstr.type_check(loc, false)) {
-      *non_constant_p = true;
-      return NULL_TREE;
+    void *ptr;
+    ~deleter_t ()
+    {
+      if (ptr)
+        XDELETEVEC (ptr);
     }
-    const char* msg = NULL;
+  } deleter{ NULL };
+  {
+    cexpr_str cstr (member_name);
+    if (!cstr.type_check (loc, false))
+      {
+        *non_constant_p = true;
+        return NULL_TREE;
+      }
+    const char *msg = NULL;
     int len = 0;
-    if (!cstr.extract(loc, msg, len, ctx, non_constant_p, overflow_p, jump_target)) {
-      *non_constant_p = true;
-      return NULL_TREE;
-    }
+    if (!cstr.extract (loc, msg, len, ctx, non_constant_p, overflow_p,
+                       jump_target))
+      {
+        *non_constant_p = true;
+        return NULL_TREE;
+      }
     // possible it's not null terminated :D
-    char* txt = XNEWVEC(char, len + 1);
-    memcpy(txt, msg, len);
+    char *txt = XNEWVEC (char, len + 1);
+    memcpy (txt, msg, len);
     txt[len] = '\0';
-    ostr.text = (unsigned char*)txt;
+    ostr.text = (unsigned char *)txt;
     ostr.len = len;
     deleter.ptr = txt;
   }
 
-  if (strlen((const char*)ostr.text) != ostr.len)
-    return throw_exception (loc, ctx,
-			    "ivl_inject_csdm: second argument contains null character",
-			    fun, non_constant_p, jump_target);
-  if (strcmp((const char*)ostr.text, TYPE_NAME_STRING(type)) == 0)
-    return throw_exception (loc, ctx,
-			    "ivl_inject_csdm: second argument is equal to name of type",
-			    fun, non_constant_p, jump_target);
+  if (strlen ((const char *)ostr.text) != ostr.len)
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: second argument contains null character",
+        fun, non_constant_p, jump_target);
+  if (strcmp ((const char *)ostr.text, TYPE_NAME_STRING (type)) == 0)
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: second argument is equal to name of type",
+        fun, non_constant_p, jump_target);
   if (!cpp_valid_identifier (parse_in, ostr.text))
-    return throw_exception (loc, ctx,
-			    "ivl_inject_csdm: second argument is not a valid identifier",
-			    fun, non_constant_p, jump_target);
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: second argument is not a valid identifier",
+        fun, non_constant_p, jump_target);
 
-  tree id = get_identifier ((const char*)ostr.text);
+  tree id = get_identifier ((const char *)ostr.text);
   switch (get_identifier_kind (id))
     {
     case cik_keyword:
-      return throw_exception (loc, ctx, "ivl_inject_csdm: second argument is a keyword",
-			      fun, non_constant_p, jump_target);
+      return throw_exception (loc, ctx,
+                              "ivl_inject_csdm: second argument is a keyword",
+                              fun, non_constant_p, jump_target);
     case cik_trait:
-      return throw_exception (loc, ctx, "ivl_inject_csdm: second argument is a built-in trait",
-			      fun, non_constant_p, jump_target);
+      return throw_exception (
+          loc, ctx, "ivl_inject_csdm: second argument is a built-in trait",
+          fun, non_constant_p, jump_target);
     default:
       break;
     }
@@ -6263,16 +6279,21 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   {
     tree lookup = lookup_qualified_name (type, id);
     if (!error_operand_p (lookup))
-      return throw_exception (loc, ctx, "ivl_inject_csdm: second argument is already a name in type",
-			      fun, non_constant_p, jump_target);
+      return throw_exception (
+          loc, ctx,
+          "ivl_inject_csdm: second argument is already a name in type", fun,
+          non_constant_p, jump_target);
   }
   if (kind != REFLECT_VALUE && kind != REFLECT_OBJECT)
-    return throw_exception (loc, ctx, "ivl_inject_csdm: third argument is not a value or reference",
-			    fun, non_constant_p, jump_target);
+    return throw_exception (
+        loc, ctx,
+        "ivl_inject_csdm: third argument is not a value or reference", fun,
+        non_constant_p, jump_target);
   tree member_type = TREE_TYPE (member_value);
   if (!literal_type_p (member_type))
-    return throw_exception (loc, ctx, "ivl_inject_csdm: third argument type is not literal",
-			    fun, non_constant_p, jump_target);
+    return throw_exception (
+        loc, ctx, "ivl_inject_csdm: third argument type is not literal", fun,
+        non_constant_p, jump_target);
 
   tree saved = current_class_type;
   current_class_type = type;
@@ -6292,19 +6313,16 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   declarator.u.id.unqualified_name = id;
   declarator.u.id.sfk = sfk_none;
   declarator.id_loc = loc;
-  
+
   cp_decl_specifier_seq decl_specifiers;
   memset (&decl_specifiers, 0, sizeof (cp_decl_specifier_seq));
   decl_specifiers.type = member_type;
   decl_specifiers.storage_class = sc_static;
-  decl_specifiers.locations[ds_constexpr] = location_of(member_value);
-  decl_specifiers.locations[ds_inline] = location_of(member_value);
-  
-  tree decl = grokdeclarator (&declarator,
-			      &decl_specifiers,
-			      FIELD,
-			      SD_INITIALIZED,
-			      NULL);
+  decl_specifiers.locations[ds_constexpr] = location_of (member_value);
+  decl_specifiers.locations[ds_inline] = location_of (member_value);
+
+  tree decl = grokdeclarator (&declarator, &decl_specifiers, FIELD,
+                              SD_INITIALIZED, NULL);
   gcc_assert (decl != error_mark_node);
   gcc_assert (decl != NULL_TREE);
 
@@ -6315,28 +6333,29 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
 
   gcc_assert (decl != error_mark_node);
 
-  finish_initialized_static_member(decl, member_value, NULL_TREE);
+  finish_initialized_static_member (decl, member_value, NULL_TREE);
 
   DECL_ATTRIBUTES (decl) = NULL_TREE;
   SET_DECL_LANGUAGE (decl, lang_cplusplus);
-  
+
   DECL_CHAIN (decl) = TYPE_FIELDS (current_class_type);
   TYPE_FIELDS (current_class_type) = decl;
 
   current_class_type = saved;
 
-  gcc_assert(decl != error_mark_node);
+  gcc_assert (decl != error_mark_node);
 
   vec<tree, va_gc> *member_vec = CLASSTYPE_MEMBER_VEC (type);
-  if (member_vec) {
-    tree* slot = find_member_slot (type, id);
-    gcc_assert (slot);
+  if (member_vec)
+    {
+      tree *slot = find_member_slot (type, id);
+      gcc_assert (slot);
 
-    tree ret = ovl_insert (decl, *slot, 0);
-    gcc_assert (ret != NULL_TREE);
-    gcc_assert (ret != error_mark_node);
-    *slot = ret;
-  }
+      tree ret = ovl_insert (decl, *slot, 0);
+      gcc_assert (ret != NULL_TREE);
+      gcc_assert (ret != error_mark_node);
+      *slot = ret;
+    }
 
   return boolean_true_node;
 }
