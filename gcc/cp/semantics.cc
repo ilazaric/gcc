@@ -4243,18 +4243,9 @@ begin_class_definition (tree t)
 
 /* Finish the member declaration given by DECL.  */
 
-static void ivl_count(tree t, const char* desc)
-{
-  // tree x;
-  // int cnt = 0;
-  // for (x = TYPE_FIELDS (t); x; x = DECL_CHAIN (x)) ++cnt;
-  // error("IVL_COUNT[%s]: %T -- %d", desc, t, cnt);
-}
-
 void
 finish_member_declaration (tree decl)
 {
-  ivl_count(current_class_type, "fmd: start");
   if (decl == error_mark_node || decl == NULL_TREE)
     return;
 
@@ -4282,8 +4273,6 @@ finish_member_declaration (tree decl)
       TREE_PRIVATE (DECL_TEMPLATE_RESULT (decl)) = TREE_PRIVATE (decl);
       TREE_PROTECTED (DECL_TEMPLATE_RESULT (decl)) = TREE_PROTECTED (decl);
     }
-
-  ivl_count(current_class_type, "fmd: after access");
 
   /* Mark the DECL as a member of the current class, unless it's
      a member of an enumeration.  */
@@ -4313,8 +4302,6 @@ finish_member_declaration (tree decl)
         DECL_ATTRIBUTES (decl) = NULL_TREE;
     }
 
-  ivl_count(current_class_type, "fmd: mid");
-
   /* [dcl.link]
 
      A C language linkage is ignored for the names of class members
@@ -4334,7 +4321,6 @@ finish_member_declaration (tree decl)
 	   || pushdecl_class_level (decl))
     add = true;
 
-  ivl_count(current_class_type, "fmd: before add");
   if (add)
     {
       /* All TYPE_DECLs go at the end of TYPE_FIELDS.  Ordinary fields
@@ -4356,11 +4342,9 @@ finish_member_declaration (tree decl)
 	  TYPE_FIELDS (current_class_type) = decl;
 	}
 
-      ivl_count(current_class_type, "fmd: near end of add");
       maybe_add_class_template_decl_list (current_class_type, decl,
 					  /*friend_p=*/0);
     }
-  ivl_count(current_class_type, "fmd: after add");
 }
 
 /* Finish processing a complete template declaration.  The PARMS are
@@ -4777,9 +4761,7 @@ finish_id_expression_1 (tree id_expression,
 			const char **error_msg,
 			location_t location)
 {
-  if (getenv("IVL")) warning(0, "IVL (%d): fie1: %C %D", __LINE__, TREE_CODE(decl), decl);
   decl = strip_using_decl (decl);
-  if (getenv("IVL")) warning(0, "IVL (%d): fie1: %C %D", __LINE__, TREE_CODE(decl), decl);
 
   /* Initialize the output parameters.  */
   *idk = CP_ID_KIND_NONE;
@@ -12819,8 +12801,6 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
   tsubst_flags_t complain = tf_warning_or_error;
 
   msg = NULL;
-  // error("sz? %d", (int)(bool)message_sz);
-  // error("data? %d", (int)(bool)message_data);
   if (message_sz && message_data)
     {
       tree msz;
@@ -12851,8 +12831,6 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
 		      "%qE too large", msz);
 	  return false;
 	}
-      // error("init len");
-      // error("ctx? %d", (int)(bool)ctx);
       len = tree_to_uhwi (msz);
       tree data;
       if (ctx)
@@ -12890,13 +12868,11 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
 		  || (unsigned) TREE_STRING_LENGTH (str) < off + len)
 		goto unhandled;
 	      msg = TREE_STRING_POINTER (str) + off;
-	      // error("quick exit");
 	      goto translate;
 	    }
 	  if (TREE_CODE (str) != CONSTRUCTOR
 	      || TREE_CODE (TREE_TYPE (str)) != ARRAY_TYPE)
 	    goto unhandled;
-	  // error("creating memory!");
 	  char *b;
 	  if (len < 64)
 	    b = XALLOCAVEC (char, len + 1);
@@ -12943,12 +12919,10 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
 		  b[l - off] = tree_to_shwi (value);
 		l++;
 	      }
-	  // error_at(location, "not reached");
 	  b[len] = '\0';
 	}
       else
 	{
-	  
 	  data = maybe_constant_value (message_data, NULL_TREE, mce_true);
 	  if (!reduced_constant_expression_p (data))
 	    data = NULL_TREE;
@@ -13005,7 +12979,6 @@ cexpr_str::extract (location_t location, const char * &msg, int &len,
     }
   else
     {
-      // error_at(location, "not reached");
       tree eltype = TREE_TYPE (TREE_TYPE (message));
       int sz = TREE_INT_CST_LOW (TYPE_SIZE_UNIT (eltype));
       msg = TREE_STRING_POINTER (message);
@@ -13114,15 +13087,11 @@ finish_static_assert (tree condition, tree message, location_t location,
       return;
     }
 
-  if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
-
   /* Fold the expression and convert it to a boolean value. */
   condition = contextual_conv_bool (condition, complain);
-  if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
   condition = fold_non_dependent_expr (condition, complain,
 				       /*manifestly_const_eval=*/true);
 
-  if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
   if (TREE_CODE (condition) == INTEGER_CST && !integer_zerop (condition))
     /* Do nothing; the condition is satisfied. */
     ;
@@ -13130,7 +13099,6 @@ finish_static_assert (tree condition, tree message, location_t location,
     {
       iloc_sentinel ils (location);
 
-      if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
       if (integer_zerop (condition))
 	{
 	  /* CWG2518: static_assert failure in a template is not IFNDR.  */
@@ -13170,8 +13138,6 @@ finish_static_assert (tree condition, tree message, location_t location,
 	}
       else if (condition && condition != error_mark_node)
 	{
-	  // TODO: fails here
-	  if (getenv("IVL")) warning(0, "IVL (%d): condition = %E", __LINE__, condition);
 	  error ("non-constant condition for static assertion");
 	  if (require_rvalue_constant_expression (condition))
 	    cxx_constant_value (condition);
