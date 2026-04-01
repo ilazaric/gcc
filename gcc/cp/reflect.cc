@@ -6289,6 +6289,8 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not defined yet",
 			    fun, non_constant_p, jump_target);
 
+  type = complete_type(type);
+
   cpp_string ostr;
   struct deleter_t {
     void* ptr;
@@ -6424,6 +6426,21 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   current_class_type = saved;
 
   gcc_assert(decl != error_mark_node);
+
+  vec<tree, va_gc> *member_vec = CLASSTYPE_MEMBER_VEC (type);
+  if (member_vec) {
+    tree* slot = find_member_slot (type, id);
+    gcc_assert (slot);
+
+    tree ret = ovl_insert (decl, *slot, 0);
+    gcc_assert (ret != NULL_TREE);
+    gcc_assert (ret != error_mark_node);
+    *slot = ret;
+    
+  // vec_safe_push (member_vec, NULL_TREE);
+  // ivl_notify_member_vec (klass, __func__, __LINE__);
+  // CLASSTYPE_MEMBER_VEC (klass) = member_vec;
+  }
 
   // add_decl_to_level (, decl);
   // TREE_CHAIN (decl) = b->names;

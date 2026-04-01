@@ -36,6 +36,13 @@ along with GCC; see the file COPYING3.  If not see
 #include "c-family/c-spellcheck.h"
 #include "bitmap.h"
 
+static void ivl_notify_member_vec (tree klass, const char* fn, int line) {
+  return;
+  if (strcmp(TYPE_NAME_STRING(klass), "S"))
+    return;
+  error("IVL: %s (%d): member_vec init! type=%T", fn, line, klass);
+}
+
 static cxx_binding *cxx_binding_make (tree value, tree type);
 static cp_binding_level *innermost_nonclass_level (void);
 static void set_identifier_type_value_with_scope (tree id, tree decl,
@@ -1973,6 +1980,9 @@ search_anon_aggr (tree anon, tree name, bool want_type)
 tree
 get_class_binding_direct (tree klass, tree name, bool want_type)
 {
+  bool mine = strcmp(IDENTIFIER_POINTER(name), "hello") == 0 && false;
+  if (mine)
+    warning(0, "IVL: %s (%d): type=%T, name=%E", __func__, __LINE__, klass, name);
   gcc_checking_assert (RECORD_OR_UNION_TYPE_P (klass));
 
   /* Conversion operators can only be found by the marker conversion
@@ -1982,8 +1992,15 @@ get_class_binding_direct (tree klass, tree name, bool want_type)
   tree val = NULL_TREE;
   vec<tree, va_gc> *member_vec = CLASSTYPE_MEMBER_VEC (klass);
 
+  // TODO: if member_vec exists already my thing doesnt get injected!
+
+  if (mine)
+    warning(0, "IVL: %s (%d): member_vec? %d", __func__, __LINE__, (int)(bool)member_vec);
+
   if (COMPLETE_TYPE_P (klass) && member_vec)
     {
+  if (mine)
+    warning(0, "IVL: %s (%d): type=%T, name=%E", __func__, __LINE__, klass, name);
       val = member_vec_binary_search (member_vec, lookup);
       if (!val)
 	;
@@ -2038,6 +2055,8 @@ get_class_binding_direct (tree klass, tree name, bool want_type)
     }
   else
     {
+  if (mine)
+    warning(0, "IVL: %s (%d): type=%T, name=%E", __func__, __LINE__, klass, name);
       if (member_vec && !want_type)
 	val = member_vec_linear_search (member_vec, lookup);
 
@@ -2110,8 +2129,13 @@ maybe_lazily_declare (tree klass, tree name)
 tree
 get_class_binding (tree klass, tree name, bool want_type /*=false*/)
 {
+  //warning(0, "IVL: %s (%d): type=%T, name=%E", __func__, __LINE__, klass, name);
   klass = complete_type (klass);
 
+  // bool mine = strcmp(IDENTIFIER_POINTER(name), "hello") == 0;
+  // warning(0, "IVL: %s (%d): mine=%d", __func__, __LINE__, (int)mine);
+
+  // if (!mine)
   if (COMPLETE_TYPE_P (klass))
     maybe_lazily_declare (klass, name);
 
@@ -2132,6 +2156,8 @@ find_member_slot (tree klass, tree name)
   if (!member_vec)
     {
       vec_alloc (member_vec, 8);
+      // HERE!!!
+  ivl_notify_member_vec (klass, __func__, __LINE__);
       CLASSTYPE_MEMBER_VEC (klass) = member_vec;
       if (complete_p)
 	/* If the class is complete but had no member_vec, we need to
@@ -2177,6 +2203,8 @@ find_member_slot (tree klass, tree name)
       /* Do exact allocation, as we don't expect to add many.  */
       gcc_assert (name != conv_op_identifier);
       vec_safe_reserve_exact (member_vec, 1);
+      // HERE!!!
+      ivl_notify_member_vec (klass, __func__, __LINE__);
       CLASSTYPE_MEMBER_VEC (klass) = member_vec;
       member_vec->quick_insert (ix, NULL_TREE);
       return &(*member_vec)[ix];
@@ -2195,6 +2223,7 @@ add_member_slot (tree klass, tree name)
 
   vec<tree, va_gc> *member_vec = CLASSTYPE_MEMBER_VEC (klass);
   vec_safe_push (member_vec, NULL_TREE);
+  ivl_notify_member_vec (klass, __func__, __LINE__);
   CLASSTYPE_MEMBER_VEC (klass) = member_vec;
 
   tree *slot = &member_vec->last ();
@@ -2541,6 +2570,7 @@ set_class_bindings (tree klass, int extra)
 
   if (member_vec)
     {
+      ivl_notify_member_vec (klass, __func__, __LINE__);
       CLASSTYPE_MEMBER_VEC (klass) = member_vec;
       member_vec->qsort (member_name_cmp);
       member_vec_dedup (member_vec);
@@ -2571,6 +2601,7 @@ insert_late_enum_def_bindings (tree klass, tree enumtype)
 	member_vec_append_enum_values (member_vec, enumtype);
       else
 	member_vec_append_class_fields (member_vec, klass);
+  ivl_notify_member_vec (klass, __func__, __LINE__);
       CLASSTYPE_MEMBER_VEC (klass) = member_vec;
       member_vec->qsort (member_name_cmp);
       member_vec_dedup (member_vec);
@@ -7668,6 +7699,7 @@ suggest_alternative_in_scoped_enum (tree name, tree scoped_enum)
 tree
 lookup_qualified_name (tree scope, tree name, LOOK_want want, bool complain)
 {
+  // warning(0, "IVL: %s (%d): scope=%T, name=%E", __func__, __LINE__, scope, name);
   tree t = NULL_TREE;
 
   if (TREE_CODE (scope) == NAMESPACE_DECL)

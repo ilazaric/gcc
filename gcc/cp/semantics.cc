@@ -4777,7 +4777,9 @@ finish_id_expression_1 (tree id_expression,
 			const char **error_msg,
 			location_t location)
 {
+  if (getenv("IVL")) warning(0, "IVL (%d): fie1: %C %D", __LINE__, TREE_CODE(decl), decl);
   decl = strip_using_decl (decl);
+  if (getenv("IVL")) warning(0, "IVL (%d): fie1: %C %D", __LINE__, TREE_CODE(decl), decl);
 
   /* Initialize the output parameters.  */
   *idk = CP_ID_KIND_NONE;

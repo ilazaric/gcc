@@ -7065,6 +7065,7 @@ cp_parser_primary_expression (cp_parser *parser,
 		return error_mark_node;
 	      }
 
+	    // if (getenv("IVL")) warning(0, "IVL (%d): cp_parser_primary_expression: %C", __LINE__, TREE_CODE(decl));
 	    decl = cp_parser_lookup_name (parser, id_expression,
 					  none_type,
 					  template_p,
@@ -7072,6 +7073,8 @@ cp_parser_primary_expression (cp_parser *parser,
 					  /*check_dependency=*/true,
 					  &ambiguous_decls,
 					  id_expression.get_location ());
+	    // var_decl or error_mark
+	    // if (getenv("IVL")) warning(0, "IVL (%d): cp_parser_primary_expression: %C", __LINE__, TREE_CODE((tree)decl));
 	    /* If the lookup was ambiguous, an error will already have
 	       been issued.  */
 	    if (ambiguous_decls)
@@ -7155,6 +7158,10 @@ cp_parser_primary_expression (cp_parser *parser,
 	      }
 	  }
 
+	// TODO: this sigsegvs
+	// if (getenv("IVL")) warning(0, "IVL (%d): cp_parser_primary_expression: %C", __LINE__, TREE_CODE(decl));
+	// if (getenv("IVL") && decl) warning(0, "IVL (%d): cp_parser_primary_expression: %C %D", __LINE__, TREE_CODE(decl), decl);
+	
 	decl = (finish_id_expression
 		(id_expression, decl, parser->scope,
 		 idk,
@@ -30873,8 +30880,8 @@ cp_parser_member_declaration (cp_parser* parser)
   int saved_pedantic, saved_long_long;
   bool saved_colon_corrects_to_scope_p = parser->colon_corrects_to_scope_p;
 
-  if (IVL)
-  error("IVL: start of cp_parser_member_declaration");
+  // if (IVL)
+  // error("IVL: start of cp_parser_member_declaration");
 
   /* Check for the `__extension__' keyword.  */
   if (cp_parser_extension_opt (parser, &saved_pedantic, &saved_long_long))
@@ -30972,8 +30979,8 @@ cp_parser_member_declaration (cp_parser* parser)
   if (cp_parser_using_declaration (parser, /*access_declaration=*/true))
     goto out;
 
-  if (IVL)
-  error("IVL: %s (%d)", __func__, __LINE__);
+  // if (IVL)
+  // error("IVL: %s (%d)", __func__, __LINE__);
   /* Parse the decl-specifier-seq.  */
   decl_spec_token_start = cp_lexer_peek_token (parser->lexer);
   cp_parser_decl_specifier_seq (parser,
@@ -35246,6 +35253,10 @@ cp_parser_lookup_name (cp_parser *parser, tree name,
   tree decl;
   tree object_type = parser->context->object_type;
 
+  // warning(0, "IVL: %s (%d): %C", __func__, __LINE__, TREE_CODE(name));
+  // warning(0, "IVL: %s (%d): %E", __func__, __LINE__, name);
+  // TODO, continue here, return is var_decl or error_mark
+
   /* Assume that the lookup will be unambiguous.  */
   if (ambiguous_decls)
     *ambiguous_decls = NULL_TREE;
@@ -35309,6 +35320,8 @@ cp_parser_lookup_name (cp_parser *parser, tree name,
   /* Perform the lookup.  */
   if (parser->scope)
     {
+      // warning(0, "IVL: first block");
+      // warning(0, "IVL (%d): decl? %d %d", __LINE__, (int)(bool)decl, (int)(decl == error_mark_node));
       bool dependent_p;
 
       if (parser->scope == error_mark_node)
@@ -35338,6 +35351,9 @@ cp_parser_lookup_name (cp_parser *parser, tree name,
 	  if (dependent_p)
 	    pushed_scope = push_scope (parser->scope);
 
+	  // warning(0, "IVL (%d): decl? %d %d", __LINE__, (int)(bool)decl, (int)(decl == error_mark_node));
+
+	  // TODO: this fails :(
 	  /* If the PARSER->SCOPE is a template specialization, it
 	     may be instantiated during name lookup.  In that case,
 	     errors may be issued.  Even if we rollback the current
@@ -35345,6 +35361,7 @@ cp_parser_lookup_name (cp_parser *parser, tree name,
 	  decl = lookup_qualified_name (parser->scope, name,
 					prefer_type_arg (tag_type),
 					/*complain=*/true);
+	  // warning(0, "IVL (%d): decl? %d %d", __LINE__, (int)(bool)decl, (int)(decl == error_mark_node));
 
 	  /* 3.4.3.1: In a lookup in which the constructor is an acceptable
 	     lookup result and the nested-name-specifier nominates a class C:
@@ -35366,10 +35383,12 @@ cp_parser_lookup_name (cp_parser *parser, tree name,
 	    decl = lookup_qualified_name (parser->scope, ctor_identifier,
 					  prefer_type_arg (tag_type),
 					  /*complain=*/true);
+	  // warning(0, "IVL (%d): decl? %d %d", __LINE__, (int)(bool)decl, (int)(decl == error_mark_node));
 
 	  if (pushed_scope)
 	    pop_scope (pushed_scope);
 	}
+      // warning(0, "IVL (%d): decl? %d %d", __LINE__, (int)(bool)decl, (int)(decl == error_mark_node));
 
       /* If the scope is a dependent type and either we deferred lookup or
 	 we did lookup but didn't find the name, rememeber the name.  */
@@ -35378,6 +35397,7 @@ cp_parser_lookup_name (cp_parser *parser, tree name,
 	       && dependentish_scope_p (parser->scope))
 	      || dependent_namespace_p (parser->scope)))
 	{
+	  // warning(0, "IVL (%d): decl? %d %d", __LINE__, (int)(bool)decl, (int)(decl == error_mark_node));
 	  if (tag_type)
 	    {
 	      tree type;
@@ -35389,6 +35409,7 @@ cp_parser_lookup_name (cp_parser *parser, tree name,
 					 /*complain=*/tf_error);
 	      if (type != error_mark_node)
 		decl = TYPE_NAME (type);
+	      // warning(0, "IVL (%d): decl? %d %d", __LINE__, (int)(bool)decl, (int)(decl == error_mark_node));
 	    }
 	  else if (is_template
 		   && (cp_parser_next_token_ends_template_argument_p (parser)
@@ -35401,12 +35422,15 @@ cp_parser_lookup_name (cp_parser *parser, tree name,
 	    decl = build_qualified_name (/*type=*/NULL_TREE,
 					 parser->scope, name,
 					 is_template);
+	  // warning(0, "IVL (%d): decl? %d %d", __LINE__, (int)(bool)decl, (int)(decl == error_mark_node));
 	}
       parser->qualifying_scope = parser->scope;
       parser->object_scope = NULL_TREE;
+      // warning(0, "IVL (%d): decl? %d %d", __LINE__, (int)(bool)decl, (int)(decl == error_mark_node));
     }
   else if (object_type)
     {
+      // warning(0, "IVL: second block");
       bool dep = dependent_scope_p (object_type);
 
       /* Look up the name in the scope of the OBJECT_TYPE, unless the
@@ -35471,15 +35495,20 @@ cp_parser_lookup_name (cp_parser *parser, tree name,
     }
   else
     {
+      // warning(0, "IVL: third block");
       decl = lookup_name (name, is_namespace ? LOOK_want::NAMESPACE
 			  : prefer_type_arg (tag_type));
       parser->qualifying_scope = NULL_TREE;
       parser->object_scope = NULL_TREE;
     }
 
+
   /* If the lookup failed, let our caller know.  */
-  if (!decl || decl == error_mark_node)
+  if (!decl || decl == error_mark_node) {
+    // warning(0, "IVL: lookup failed");
     return error_mark_node;
+  }
+  // warning(0, "IVL: lookup succeeded");
 
   /* If we have resolved the name of a member declaration, check to
      see if the declaration is accessible.  When the name resolves to

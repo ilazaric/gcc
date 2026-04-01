@@ -1062,6 +1062,8 @@ lookup_field_r (tree binfo, void *data)
   tree type = BINFO_TYPE (binfo);
   tree nval = NULL_TREE;
 
+  // warning(0, "IVL: %s (%d): type=%T, lfi->type=%T, lfi->name=%E", __func__, __LINE__, type, lfi->type, lfi->name);
+
   /* If this is a dependent base, don't look in it.  */
   if (BINFO_DEPENDENT_BASE_P (binfo))
     return NULL_TREE;
@@ -1072,12 +1074,15 @@ lookup_field_r (tree binfo, void *data)
       && !BINFO_VIRTUAL_P (binfo))
     return dfs_skip_bases;
 
+  // TODO: this fucks up
   nval = get_class_binding (type, lfi->name, lfi->want_type);
 
   /* If there is no declaration with the indicated name in this type,
      then there's nothing to do.  */
-  if (!nval)
+  if (!nval) {
+    // warning(0, "IVL: %s (%d): type=%T, lfi->type=%T, lfi->name=%E", __func__, __LINE__, type, lfi->type, lfi->name);
     goto done;
+  }
 
   /* If the lookup already found a match, and the new value doesn't
      hide the old one, we might have an ambiguity.  */
@@ -1178,6 +1183,7 @@ tree
 lookup_member (tree xbasetype, tree name, int protect, bool want_type,
 	       tsubst_flags_t complain, access_failure_info *afi /* = NULL */)
 {
+  // warning(0, "IVL: %s (%d): scope=%T, name=%E", __func__, __LINE__, xbasetype, name);
   tree rval, rval_binfo = NULL_TREE;
   tree type = NULL_TREE, basetype_path = NULL_TREE;
   struct lookup_field_info lfi;
@@ -1251,8 +1257,10 @@ lookup_member (tree xbasetype, tree name, int protect, bool want_type,
 	return lfi.ambiguous;
     }
 
+  // warning(0, "IVL: %s (%d): scope=%T, name=%E", __func__, __LINE__, xbasetype, name);
   if (!rval)
     return NULL_TREE;
+  // warning(0, "IVL: %s (%d): scope=%T, name=%E", __func__, __LINE__, xbasetype, name);
 
   /* [class.access]
 

@@ -742,7 +742,7 @@ delete_sanity (location_t loc, tree exp, tree size, bool doing_vec,
 /* Report an error if the indicated template declaration is not the
    sort of thing that should be a member template.  */
 
-#define IVL 0
+#define IVL 0 // (getenv("IVL"))
 
 void
 check_member_template (tree tmpl)
@@ -1175,6 +1175,7 @@ finish_static_data_member_decl (tree decl,
 				tree asmspec_tree,
 				int flags)
 {
+  if (IVL) error("IVL: decl finished top %D", decl);
   if (DECL_TEMPLATE_INSTANTIATED (decl))
     /* We already needed to instantiate this, so the processing in this
        function is unnecessary/wrong.  */
@@ -1569,8 +1570,10 @@ is_static_data_member_initialized_in_class (tree decl)
 void
 finish_initialized_static_member (tree decl, tree init, tree asmspec)
 {
+  if (IVL) error("IVL: decl finished toptop %C %D", TREE_CODE(decl), decl);
   if (decl == error_mark_node)
     return;
+  if (IVL) error("IVL: decl finished post error %C %D", TREE_CODE(decl), decl);
   gcc_checking_assert (is_static_data_member_initialized_in_class (decl));
 
   int flags;
