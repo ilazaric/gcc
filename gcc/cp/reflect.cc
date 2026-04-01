@@ -7567,7 +7567,6 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	break;
       case METAFN_KIND_ARG_INFO:
       case METAFN_KIND_ARG_TINFO:
-	// gcc_assert (argno < 2);
 	info = get_info (ctx, call, argno, non_constant_p, overflow_p,
 			 jump_target);
 	if (*jump_target || *non_constant_p)
@@ -7621,10 +7620,8 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
 	break;
       case METAFN_KIND_ARG_STRING_VIEW:
 	gcc_assert (argno == 1);
-	// gcc_assert (TREE_CODE (call) == CALL_EXPR);
 	expr = convert_from_reference (get_nth_callarg (call, argno));
-	expr = cxx_eval_constant_expression (ctx, expr,
-					     vc_glvalue,
+	expr = cxx_eval_constant_expression (ctx, expr, vc_glvalue,
 					     non_constant_p, overflow_p,
 					     jump_target);
 	if (*jump_target || *non_constant_p)
@@ -7634,10 +7631,8 @@ process_metafunction (const constexpr_ctx *ctx, tree fun, tree call,
       case METAFN_KIND_ARG_ACCESS_CONTEXT:
       case METAFN_KIND_ARG_DATA_MEMBER_OPTIONS:
 	gcc_assert (argno == 1);
-	// gcc_assert (TREE_CODE (call) == CALL_EXPR);
-	expr = convert_from_reference (get_nth_callarg (call, argno));
-	expr = cxx_eval_constant_expression (ctx, expr,
-					     vc_prvalue,
+	expr = get_nth_callarg (call, argno);
+	expr = cxx_eval_constant_expression (ctx, expr, vc_prvalue,
 					     non_constant_p, overflow_p,
 					     jump_target);
 	if (*jump_target || *non_constant_p)
