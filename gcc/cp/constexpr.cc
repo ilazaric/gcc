@@ -4015,7 +4015,6 @@ cxx_eval_call_expression (const constexpr_ctx *ctx, tree t,
 	  return t;
 	}
       ctx->global->metafns_called = true;
-      // IVL_HERE
       tree e = process_metafunction (ctx, fun, t, non_constant_p, overflow_p,
 				     jump_target);
       if (*jump_target)
@@ -6732,9 +6731,6 @@ verify_ctor_sanity (const constexpr_ctx *ctx, tree type)
   /* We don't bother building a ctor for an empty base subobject.  */
   if (is_empty_class (type))
     return;
-
-  // if (!ctx->ctor)
-  //   error("ctx? %d", (int)(bool)ctx->ctor);
 
   /* We're in the middle of an initializer that might involve placeholders;
      our caller should have created a CONSTRUCTOR for us to put the
