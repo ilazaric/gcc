@@ -6289,6 +6289,7 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     return throw_exception (loc, ctx, "ivl_inject_csdm: first argument is not defined yet",
 			    fun, non_constant_p, jump_target);
 
+  // noop?
   type = complete_type(type);
 
   cpp_string ostr;
@@ -6296,7 +6297,6 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     void* ptr;
     ~deleter_t() { if (ptr) XDELETEVEC(ptr); }
   } deleter{NULL};
-
   {
     cexpr_str cstr(member_name);
     if (!cstr.type_check(loc, false)) {
@@ -6318,13 +6318,10 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     deleter.ptr = txt;
   }
 
-  // error("parsed len: [%zu]", ostr.len);
-
   if (strlen((const char*)ostr.text) != ostr.len)
     return throw_exception (loc, ctx,
 			    "ivl_inject_csdm: second argument contains null character",
 			    fun, non_constant_p, jump_target);
-
   if (!cpp_valid_identifier (parse_in, ostr.text))
     return throw_exception (loc, ctx,
 			    "ivl_inject_csdm: second argument is not a valid identifier",
@@ -6349,7 +6346,6 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
       return throw_exception (loc, ctx, "ivl_inject_csdm: second argument is already a name in type",
 			      fun, non_constant_p, jump_target);
   }
-  
   if (kind != REFLECT_VALUE && kind != REFLECT_OBJECT)
     return throw_exception (loc, ctx, "ivl_inject_csdm: third argument is not a value or reference",
 			    fun, non_constant_p, jump_target);
@@ -6358,22 +6354,11 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     return throw_exception (loc, ctx, "ivl_inject_csdm: third argument type is not literal",
 			    fun, non_constant_p, jump_target);
 
-  // error_at(loc, "parsed name: [%s]", ostr.text);
-
-  // TODO: okay, parsed everything, now need to inject it, somehow ...
-  // ....: for that i need to understand what is a struct, how the csdm would get parsed,
-  // ....: what does finishing a struct mean, ...
-
-#if 1
   tree saved = current_class_type;
   current_class_type = type;
 
-  // declarator
-  // cp_parser_declarator
-  // cp_parser_direct_declarator
-  // make_id_declarator
   cp_declarator decl_value;
-  cp_declarator* declarator = &decl_value; // = make_id_declarator(NULL_TREE, id, sfk_none, loc);
+  cp_declarator* declarator = &decl_value;
 
   declarator->kind = cdk_id;
   declarator->parenthesized = UNKNOWN_LOCATION;
@@ -6389,16 +6374,12 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   declarator->u.id.sfk = sfk_none;
   declarator->id_loc = loc;
   
-  // cp_declarator* declarator = NULL;
-  cp_decl_specifier_seq decl_specifiers; // TODO: init
+  cp_decl_specifier_seq decl_specifiers;
   memset (&decl_specifiers, 0, sizeof (cp_decl_specifier_seq));
   decl_specifiers.type = member_type;
   decl_specifiers.storage_class = sc_static;
-  // ^ cp_parser_set_storage_class (parser, decl_specifiers, RID_STATIC,
-  // 			       token);
   decl_specifiers.locations[ds_constexpr] = location_of(member_value);
   
-  // grokdeclarator?
   tree decl = grokdeclarator (declarator,
 			      &decl_specifiers,
 			      FIELD,
@@ -6412,7 +6393,6 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
   TREE_PRIVATE (decl) = false;
   TREE_PROTECTED (decl) = false;
 
-  // tree decl = start_initialized_static_member (declarator, &decl_specifiers, NULL_TREE);
   gcc_assert (decl != error_mark_node);
 
   finish_initialized_static_member(decl, member_value, NULL_TREE);
@@ -6436,26 +6416,9 @@ eval_ivl_inject_csdm (location_t loc, const constexpr_ctx *ctx,
     gcc_assert (ret != NULL_TREE);
     gcc_assert (ret != error_mark_node);
     *slot = ret;
-    
-  // vec_safe_push (member_vec, NULL_TREE);
-  // ivl_notify_member_vec (klass, __func__, __LINE__);
-  // CLASSTYPE_MEMBER_VEC (klass) = member_vec;
   }
 
-  // add_decl_to_level (, decl);
-  // TREE_CHAIN (decl) = b->names;
-  // b->names = decl;
-
-#endif
-
   return boolean_true_node;
-  return void_type_node;
-  return throw_exception (loc, ctx, "ivl_inject_csdm: not implemented yet, sorry",
-			  fun, non_constant_p, jump_target);
-
-  // DECL_CONTEXT (decl) = type;
-  // pushdecl(decl);
-  // TODO: test what happens
 }
 
 /* Implement std::meta::reflect_constant_string.
