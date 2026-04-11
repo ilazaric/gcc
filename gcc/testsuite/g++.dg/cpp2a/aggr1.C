@@ -7,9 +7,9 @@ struct B {
   int b = 0;
 };
 struct C {
-  C (C&&) = default;	// { dg-message "candidate" "" { target c++20 } }
+  C (C&&) = default;
   int c, d;
 };
 A a {};			// { dg-error "use of deleted function" "" { target c++20 } }
 B b = {1};		// { dg-error "could not convert" "" { target { c++11_only || c++20 } } }
-C *c = new C {2, 3};	// { dg-error "no matching function for call to" "" { target c++20 } }
+C *c = new C {2, 3};	// IVL OK
