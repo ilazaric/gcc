@@ -5845,6 +5845,67 @@ type_has_user_provided_or_explicit_constructor (tree t)
   return false;
 }
 
+/* strict copy/move constructor has only the one parameter, no defaulted afterwards */
+
+static bool
+strict_copy_or_move_ctor_p (const_tree d)
+{
+  if (!copy_fn_p (d) && !move_fn_p (d))
+    return false;
+
+  tree args = FUNCTION_FIRST_USER_PARM (d);
+  gcc_assert (args);
+
+  args = TREE_CHAIN (args);
+  return !args;
+}
+
+/* like `type_has_user_provided_or_explicit_constructor()` , except ignores STRICT move and copy constructors  */
+
+static bool
+type_has_user_provided_or_explicit_nonspecial_constructor (tree t)
+{
+  if (!CLASS_TYPE_P (t))
+    return false;
+
+  if (!TYPE_HAS_USER_CONSTRUCTOR (t))
+    return false;
+
+  for (ovl_iterator iter (CLASSTYPE_CONSTRUCTORS (t)); iter; ++iter)
+    {
+      tree fn = *iter;
+      if (strict_copy_or_move_ctor_p (fn))
+	continue;
+      if (user_provided_p (fn) || DECL_NONCONVERTING_P (fn))
+	return true;
+    }
+
+  return false;
+}
+
+/* ignores STRICT move and copy constructors */
+
+static bool
+type_has_user_declared_nonspecial_constructor (tree t)
+{
+  if (!CLASS_TYPE_P (t))
+    return false;
+
+  if (!TYPE_HAS_USER_CONSTRUCTOR (t))
+    return false;
+
+  for (ovl_iterator iter (CLASSTYPE_CONSTRUCTORS (t)); iter; ++iter)
+    {
+      tree fn = *iter;
+      if (strict_copy_or_move_ctor_p (fn))
+	continue;
+      if (!DECL_ARTIFICIAL (fn))
+	return true;
+    }
+
+  return false;
+}
+
 /* Returns true iff class T has a non-user-provided (i.e. implicitly
    declared or explicitly defaulted in the class body) default
    constructor.  */
@@ -6531,7 +6592,7 @@ check_bases_and_members (tree t)
      Again, other conditions for being an aggregate are checked
      elsewhere.  */
   CLASSTYPE_NON_AGGREGATE (t)
-    |= (type_has_user_provided_or_explicit_constructor (t)
+    |= (type_has_user_provided_or_explicit_nonspecial_constructor (t)
 	|| TYPE_POLYMORPHIC_P (t));
   /* This is the C++98/03 definition of POD; it changed in C++0x, but we
      retain the old definition internally for ABI reasons.  */
@@ -6556,7 +6617,8 @@ check_bases_and_members (tree t)
   /* P1008: Prohibit aggregates with user-declared constructors.  */
   if (cxx_dialect >= cxx20 && TYPE_HAS_USER_CONSTRUCTOR (t))
     {
-      CLASSTYPE_NON_AGGREGATE (t) = true;
+      if (type_has_user_declared_nonspecial_constructor (t))
+	CLASSTYPE_NON_AGGREGATE (t) = true;
       if (!CLASSTYPE_NON_LAYOUT_POD_P (t))
 	{
 	  /* c++/120012: The C++20 aggregate change affected layout.  */
@@ -8339,7 +8401,7 @@ finish_struct (tree t, tree attributes)
 	      && type_has_user_provided_or_explicit_constructor (t))
 	    CLASSTYPE_NON_AGGREGATE (t) = 1;
 	}
-      else if (TYPE_HAS_USER_CONSTRUCTOR (t))
+      else if (TYPE_HAS_USER_CONSTRUCTOR (t) && type_has_user_declared_nonspecial_constructor (t))
 	CLASSTYPE_NON_AGGREGATE (t) = 1;
 
       /* Fix up any variants we've already built.  */
