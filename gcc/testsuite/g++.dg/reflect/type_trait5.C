@@ -330,7 +330,7 @@ static_assert (!is_aggregate_type (^^float));
 static_assert (!is_aggregate_type (^^double));
 static_assert (!is_aggregate_type (^^EnumType));
 static_assert (!is_aggregate_type (^^void));
-static_assert (!is_aggregate_type (^^NoexceptMoveAssignClass));
+static_assert (is_aggregate_type (^^NoexceptMoveAssignClass)); // IVL OK
 
 static_assert (!is_signed_type (^^void));
 static_assert (char (-1) < char (0) ? is_signed_type (^^char) : !is_signed_type (^^char));

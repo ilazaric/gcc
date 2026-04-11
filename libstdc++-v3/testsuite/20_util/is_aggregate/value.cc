@@ -98,7 +98,7 @@ void test01()
 #if __cplusplus > 201703L
   // In C++20 aggregates cannot have user-declared constructors.
   static_assert(test_category<is_aggregate,
-		NoexceptMoveAssignClass>(false), "");
-  neg<NoexceptMoveAssignClass>();
+		NoexceptMoveAssignClass>(true), ""); // IVL OK
+  pos<NoexceptMoveAssignClass>(); // IVL OK
 #endif
 }
