@@ -4179,7 +4179,6 @@ example:
 
 @smallexample
 enum E1 @{ e @};
-enum E2 @{ f @};
 bool b = e <= 3.7;
 @end smallexample
 
@@ -4853,7 +4852,7 @@ classes that indirectly use multiple inheritance.
 @opindex Wno-virtual-inheritance
 @item -Wvirtual-inheritance
 Warn when a class is defined with a virtual direct base class.  Some
-coding rules disallow multiple inheritance, and this may be used to
+coding rules disallow virtual inheritance, and this may be used to
 enforce that rule.  The warning is inactive inside a system header file,
 such as the STL, so one can still use the STL.  One may also define
 classes that indirectly use virtual inheritance.
@@ -8471,8 +8470,8 @@ Warn whenever a statement computes a result that is explicitly not
 used. To suppress this warning cast the unused expression to
 @code{void}. This includes an expression-statement or the left-hand
 side of a comma expression that contains no side effects. For example,
-an expression such as @code{x[i,j]} causes a warning, while
-@code{x[(void)i,j]} does not.
+an expression such as @code{(i,j)} causes a warning, while
+@code{((void)i,j)} does not.
 
 This warning is enabled by @option{-Wall}.
 
@@ -9098,6 +9097,8 @@ the pointer the result is assigned to, including those to the built-in
 forms of the functions @code{aligned_alloc}, @code{alloca},
 @code{calloc}, @code{malloc}, and @code{realloc}.
 
+@option{-Walloc-size} is enabled by @option{-Wextra}.
+
 @opindex Wno-alloc-zero
 @opindex Walloc-zero
 @item -Walloc-zero
@@ -9123,6 +9124,8 @@ argument and not the latter is intentional, the warning can be suppressed
 by using @code{calloc (sizeof (struct @var{S}) + 0, n)} or
 @code{calloc (1 * sizeof (struct @var{S}), 4)} or using @code{sizeof} in the
 later argument as well.
+
+@option{-Wcalloc-transposed-args} is enabled by @option{-Wextra}.
 
 @opindex Walloc-size-larger-than=
 @opindex Wno-alloc-size-larger-than
@@ -9235,7 +9238,7 @@ equivalent to @option{-Walloca-larger-than=}@samp{SIZE_MAX} or larger.
 @opindex Warith-conversion
 @opindex Wno-arith-conversion
 @item -Warith-conversion
-Do warn about implicit conversions from arithmetic operations even
+Warn about implicit conversions from arithmetic operations even
 when conversion of the operands to the same type cannot change their
 values.  This affects warnings from @option{-Wconversion},
 @option{-Wfloat-conversion}, and @option{-Wsign-conversion}.
@@ -9977,6 +9980,8 @@ to functions.  In C++, warn also when an arithmetic operation involves
 @code{NULL}.  This warning is also enabled by @option{-Wpedantic}.
 
 This warning is upgraded to an error by @option{-pedantic-errors}.
+
+This warning is enabled by default for C++ and Objective-C++ programs.
 
 @opindex Wpointer-compare
 @opindex Wno-pointer-compare
@@ -11196,7 +11201,7 @@ struct bar @{
 
 @opindex Wpacked-bitfield-compat
 @opindex Wno-packed-bitfield-compat
-@item -Wnopacked-bitfield-compat
+@item -Wno-packed-bitfield-compat
 The 4.1, 4.2 and 4.3 series of GCC ignore the @code{packed} attribute
 on bit-fields of type @code{char}.  This was fixed in GCC 4.4 but
 the change can lead to differences in the structure layout.  GCC
@@ -13981,7 +13986,7 @@ in default behavior.
 @emph{Note:} pseudo instruction represents, in this particular context, an
 abstract measurement of function's size.  In no way does it represent a count
 of assembly instructions and as such its exact meaning might change from one
-release to an another.
+release to another.
 
 @opindex fno-keep-inline-dllexport
 @opindex fkeep-inline-dllexport
@@ -14338,6 +14343,7 @@ the set of likely targets. If the set is small, preferably of size 1, change
 the call into a conditional deciding between direct and indirect calls.  The
 speculative calls enable more optimizations, such as inlining.  When they seem
 useless after further optimization, they are converted back into original form.
+Enabled at levels @option{-O2}, @option{-O3}, @option{-Os}.
 
 @opindex fdevirtualize-at-ltrans
 @opindex fno-devirtualize-at-ltrans
@@ -14361,6 +14367,8 @@ Enabled at levels @option{-O2}, @option{-O3}, @option{-Os}.
 @itemx -fno-ext-dce
 Perform dead code elimination on zero and sign extensions, with special
 dataflow analysis.
+
+Enabled at levels @option{-O2}, @option{-O3}, @option{-Os}.
 
 @opindex free
 @opindex fno-ree
@@ -14644,6 +14652,8 @@ conditional deciding between the direct call and the original indirect
 one.  These speculative calls often enable more optimizations, such as
 inlining.  When they seem useless after further optimization, they are
 converted back into original form.
+
+Enabled at levels @option{-O2}, @option{-O3}, @option{-Os}.
 
 @opindex freschedule-modulo-scheduled-loops
 @opindex fno-reschedule-modulo-scheduled-loops
@@ -15296,7 +15306,7 @@ are hard to handle at RTL level (function calls, operations that expand to
 nontrivial sequences of insns).  With @option{-funswitch-loops} it also moves
 operands of conditions that are invariant out of the loop, so that we can use
 just trivial invariantness analysis in loop unswitching.  The pass also includes
-store motion.
+store motion.  It is enabled by default.
 
 @opindex ftree-loop-ivcanon
 @opindex fno-tree-loop-ivcanon
@@ -15304,7 +15314,7 @@ store motion.
 Create a canonical counter for number of iterations in loops for which
 determining number of iterations requires complicated analysis.  Later
 optimizations then may determine the number easily.  Useful especially
-in connection with unrolling.
+in connection with unrolling.  It is enabled by default.
 
 @opindex ftree-scev-cprop
 @opindex fno-tree-scev-cprop
@@ -16275,8 +16285,8 @@ is marked 'extern'.
 @opindex fuse-linker-plugin
 @item -fuse-linker-plugin
 Enables the use of a linker plugin during link-time optimization.  This
-option relies on plugin support in the linker, which is available in gold
-or in GNU ld 2.21 or newer.
+option relies on plugin support in the linker, which is available in gold,
+GNU ld 2.21 or newer, and mold 1.1 or newer.
 
 This option enables the extraction of object files with GIMPLE bytecode out
 of library archives. This improves the quality of optimization by exposing
