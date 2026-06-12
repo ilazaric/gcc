@@ -38087,7 +38087,7 @@ current directory.
 
 Header units can be used in much the same way as precompiled headers
 (@pxref{Precompiled Headers}), but with fewer restrictions: an
-#include that is translated to a header unit import can appear at any
+@code{#include} that is translated to a header unit import can appear at any
 point in the source file, and multiple header units can be used
 together.  In particular, the @option{-include} strategy works: with
 the bits/stdc++.h header used for libstdc++ precompiled headers you
@@ -38098,7 +38098,7 @@ g++ -fmodules -x c++-system-header -c bits/stdc++.h
 g++ -fmodules -include bits/stdc++.h mycode.C
 @end smallexample
 
-and any standard library #includes in mycode.C will be skipped,
+and any standard library @code{#include} in mycode.C will be skipped,
 because the import brought in the whole library.  This can be a simple
 way to use modules to speed up compilation without any code changes.
 

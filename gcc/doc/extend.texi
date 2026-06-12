@@ -4256,7 +4256,8 @@ structure, union, or class.
 @atindex @code{patchable_function_entry}
 @cindex extra NOP instructions at the function entry point
 @cindex functions that have patchable entries
-@item patchable_function_entry
+@item patchable_function_entry (@var{N})
+@item patchable_function_entry (@var{N}, @var{M})
 This attribute applies to functions.
 
 In case the target's text segment can be made writable at run time by
@@ -4629,6 +4630,7 @@ information.
 @atindex @code{strub}
 @cindex stack scrubbing
 @item strub
+@item strub (@var{string})
 This attribute applies to types, and may also appear in variable and function
 declarations.
 
@@ -5547,6 +5549,8 @@ if a caller of the function with this attribute does not use its
 return value.  This is useful for functions where not checking
 the result is either a security problem or always a bug, such as
 @code{realloc}.
+
+TODO: compare to C++ attribute @code{nodiscard}
 
 @smallexample
 [[gnu::warn_unused_result]] int fn (void);
@@ -10682,7 +10686,7 @@ loop with the pragma:
 @smallexample
 void foo (int n, int *a, int *b, int *c)
 @{
-  int i, j;
+  int i;
 #pragma GCC ivdep
   for (i = 0; i < n; ++i)
     a[i] = b[i] + c[i];
@@ -10692,7 +10696,7 @@ void foo (int n, int *a, int *b, int *c)
 @noindent
 In this example, using the @code{restrict} qualifier had the same
 effect. In the following example, that would not be possible. Assume
-@math{k < -m} or @math{k >= m}. Only with the pragma, the compiler knows
+@math{k < -m} or @math{k >= m} or @math{k == 0}. Only with the pragma, the compiler knows
 that it can unconditionally vectorize the following loop:
 
 @smallexample
@@ -13424,6 +13428,8 @@ writes to register @code{r5} and therefore clobbers @code{x} which in turn is
 read by the subsequent inline @code{asm}.
 
 @subsubheading Limitations
+
+TODO: this seems wrong, think
 
 At the moment fixed registers are not supported for hard register constraints.
 Thus, idioms like
@@ -32088,7 +32094,7 @@ If @var{type} is a cv union type ([basic.compound]) the trait is
 @code{true}, else it is @code{false}.
 @enddefbuiltin
 
-@defbuiltin{bool __underlying_type (@var{type})}
+@defbuiltin{type __underlying_type (@var{type})}
 The underlying type of @var{type}.
 Requires: @var{type} shall be an enumeration type ([dcl.enum]).
 @enddefbuiltin
