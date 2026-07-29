@@ -43,6 +43,8 @@ along with GCC; see the file COPYING3.  If not see
 #  pragma GCC diagnostic ignored "-Wformat-diag"
 #endif
 
+inline bool cp_diagnostic_text_starter_context_suppressor = false;
+
 namespace diagnostics {
 
 /* Concrete buffering implementation subclass for text output.  */
@@ -212,8 +214,12 @@ text_sink::on_report_diagnostic (const diagnostic_info &diagnostic,
 
   pretty_printer *pp = get_printer ();
 
-  if (!m_suppress_starter)
-    (*text_starter (&m_context)) (*this, &diagnostic);
+  // cp_diagnostic_text_starter : gcc/cp/error.cc
+  if (m_suppress_starter)
+    cp_diagnostic_text_starter_context_suppressor = true;
+  (*text_starter (&m_context)) (*this, &diagnostic);
+  if (m_suppress_starter)
+    cp_diagnostic_text_starter_context_suppressor = false;
 
   pp_output_formatted_text (pp, m_context.get_urlifier ());
 
