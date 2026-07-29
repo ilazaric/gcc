@@ -3987,6 +3987,8 @@ cxx_print_error_function (diagnostics::text_sink &text_output,
   maybe_print_instantiation_context (text_output);
 }
 
+inline bool cp_diagnostic_text_starter_context_suppressor = false;
+
 static void
 cp_diagnostic_text_starter (diagnostics::text_sink &text_output,
 			    const diagnostics::diagnostic_info *diagnostic)
@@ -3995,9 +3997,12 @@ cp_diagnostic_text_starter (diagnostics::text_sink &text_output,
 		 text_output.build_indent_prefix (true));
   text_output.report_current_module (diagnostic_location (diagnostic));
   cp_print_error_function (text_output, diagnostic);
-  maybe_print_instantiation_context (text_output);
-  maybe_print_constexpr_context (text_output);
-  maybe_print_constraint_context (text_output);
+  if (!cp_diagnostic_text_starter_context_suppressor)
+    {
+      maybe_print_instantiation_context (text_output);
+      maybe_print_constexpr_context (text_output);
+      maybe_print_constraint_context (text_output);
+    }
   pp_set_prefix (text_output.get_printer (),
 		 text_output.build_prefix (*diagnostic));
 }
