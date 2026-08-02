@@ -2593,6 +2593,21 @@ cp_genericize_r (tree *stmt_p, int *walk_subtrees, void *data)
 			    TREE_TYPE (stmt), TREE_OPERAND (stmt, 0));
       break;
 
+    case ENCLOSING_CAST_EXPR:
+      {
+	tree memptr = TREE_OPERAND(stmt, 0);
+	tree subobj = TREE_OPERAND(stmt, 1);
+	tree type = TREE_TYPE(stmt);
+	tree ptr_type = build_pointer_type (type);
+	memptr = build1 (NOP_EXPR, sizetype, memptr);
+	memptr = build1 (NEGATE_EXPR, sizetype, memptr);
+	subobj = build1 (ADDR_EXPR, ptr_type, subobj);
+	tree r = build2 (POINTER_PLUS_EXPR, ptr_type, subobj, memptr);
+	r = build1_loc (EXPR_LOCATION(stmt), INDIRECT_REF, type, r);
+	*stmt_p = r;
+	break;
+      }
+
     case MODIFY_EXPR:
       /* Mark stores to parts of complex automatic non-addressable
 	 variables as DECL_NOT_GIMPLE_REG_P for -O0.  This can't be

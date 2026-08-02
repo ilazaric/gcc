@@ -297,6 +297,7 @@ lvalue_kind (const_tree ref)
       return clk_ordinary;
 
     case COMPOUND_EXPR:
+    case ENCLOSING_CAST_EXPR:
       return lvalue_kind (TREE_OPERAND (ref, 1));
 
     case TARGET_EXPR:

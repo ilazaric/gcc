@@ -889,6 +889,15 @@ ftms = {
 };
 
 ftms = {
+  name = enclosing_cast;
+  values = {
+    v = 202306;
+    cxxmin = 26;
+    extra_cond = "__has_builtin(__builtin_enclosing_cast)";
+  };
+};
+
+ftms = {
   name = bitops;
   values = {
     v = 201907;

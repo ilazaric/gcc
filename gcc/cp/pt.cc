@@ -21859,6 +21859,13 @@ tsubst_expr (tree t, tree args, tsubst_flags_t complain, tree in_decl)
 	RETURN (cp_build_bit_cast (EXPR_LOCATION (t), type, op0, complain));
       }
 
+    case ENCLOSING_CAST_EXPR:
+      {
+	tree memptr = RECUR (TREE_OPERAND (t, 0));
+	tree subobj = RECUR (TREE_OPERAND (t, 1));
+	RETURN (cp_build_enclosing_cast (EXPR_LOCATION(t), memptr, subobj, complain));
+      }
+
     case POSTDECREMENT_EXPR:
     case POSTINCREMENT_EXPR:
       op1 = tsubst_non_call_postfix_expression (TREE_OPERAND (t, 0),
