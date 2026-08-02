@@ -416,7 +416,8 @@ std_freestanding = \
 	${std_srcdir}/typeindex \
 	${std_srcdir}/utility \
 	${std_srcdir}/variant \
-	${std_srcdir}/version
+	${std_srcdir}/version \
+	${std_srcdir}/enclosing_cast
 
 @GLIBCXX_HOSTED_FALSE@std_headers = ${std_freestanding}
 @GLIBCXX_HOSTED_TRUE@std_headers = \
