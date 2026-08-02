@@ -988,6 +988,16 @@
 #endif /* !defined(__cpp_lib_bit_cast) */
 #undef __glibcxx_want_bit_cast
 
+#if !defined(__cpp_lib_enclosing_cast)
+# if (__cplusplus >  202302L) && (__has_builtin(__builtin_enclosing_cast))
+#  define __glibcxx_enclosing_cast 202306L
+#  if defined(__glibcxx_want_all) || defined(__glibcxx_want_enclosing_cast)
+#   define __cpp_lib_enclosing_cast 202306L
+#  endif
+# endif
+#endif /* !defined(__cpp_lib_enclosing_cast) */
+#undef __glibcxx_want_enclosing_cast
+
 #if !defined(__cpp_lib_bitops)
 # if (__cplusplus >= 202002L)
 #  define __glibcxx_bitops 201907L

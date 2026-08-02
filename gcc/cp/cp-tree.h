@@ -8732,6 +8732,8 @@ extern tree cp_build_vec_convert		(tree, location_t, tree,
 						 tsubst_flags_t);
 extern tree cp_build_bit_cast			(location_t, tree, tree,
 						 tsubst_flags_t);
+extern tree cp_build_enclosing_cast		(location_t, tree, tree,
+						 tsubst_flags_t);
 extern void start_lambda_scope			(tree decl);
 extern void finish_lambda_scope			(void);
 extern void record_lambda_scope			(tree lambda);

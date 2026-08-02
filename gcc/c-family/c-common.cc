@@ -435,6 +435,7 @@ const struct c_common_resword c_common_reswords[] =
   { "__builtin_assoc_barrier", RID_BUILTIN_ASSOC_BARRIER, 0 },
   { "__builtin_bitreverseg", RID_BUILTIN_BITREVERSEG, 0 },
   { "__builtin_bit_cast", RID_BUILTIN_BIT_CAST, D_CXXONLY },
+  { "__builtin_enclosing_cast", RID_BUILTIN_ENCLOSING_CAST, D_CXXONLY },
   { "__builtin_bswapg", RID_BUILTIN_BSWAPG, 0 },
   { "__builtin_call_with_static_chain",
     RID_BUILTIN_CALL_WITH_STATIC_CHAIN, D_CONLY },

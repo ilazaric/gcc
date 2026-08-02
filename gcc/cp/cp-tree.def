@@ -445,6 +445,13 @@ DEFTREECODE (BINARY_RIGHT_FOLD_EXPR, "binary_right_fold_expr", tcc_expression, 3
    The type is in TREE_TYPE, expression in TREE_OPERAND (bitcast, 0).  */
 DEFTREECODE (BIT_CAST_EXPR, "bit_cast_expr", tcc_expression, 1)
 
+/* Represents the __builtin_enclosing_cast (expr, expr) expression.
+   TODO: think if desc is correct
+   The type of expression is in TREE_TYPE,
+   member pointer expression in TREE_OPERAND (bitcast, 0),
+   subobject reference expression in TREE_OPERAND (bitcast, 1).  */
+DEFTREECODE (ENCLOSING_CAST_EXPR, "enclosing_cast_expr", tcc_expression, 2)
+
 /** C++ extensions. */
 
 /* Represents a templated trait that yields an expression.  */

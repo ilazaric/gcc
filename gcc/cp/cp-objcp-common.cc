@@ -580,6 +580,7 @@ names_builtin_p (const char *name)
     case RID_BUILTIN_LAUNDER:
     case RID_BUILTIN_ASSOC_BARRIER:
     case RID_BUILTIN_BIT_CAST:
+    case RID_BUILTIN_ENCLOSING_CAST:
     case RID_OFFSETOF:
     case RID_VA_ARG:
     case RID_C23_VA_START:

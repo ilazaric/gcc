@@ -8848,6 +8848,33 @@ cp_parser_postfix_expression (cp_parser *parser, bool address_p, bool cast_p,
 	break;
       }
 
+    case RID_BUILTIN_ENCLOSING_CAST:
+      {
+	tree member_expression;
+	tree subobject_expression;
+	location_t builtin_location
+	  = cp_lexer_peek_token (parser->lexer)->location;
+	/* Consume the `__builtin_enclosing_cast' token.  */
+	cp_lexer_consume_token (parser->lexer);
+	/* Look for the opening `('.  */
+	matching_parens parens;
+	parens.require_open (parser);
+	/* Parse the member pointer expression. */
+	member_expression = cp_parser_assignment_expression (parser);
+	/* Look for the `,'.  */
+	cp_parser_require (parser, CPP_COMMA, RT_COMMA);
+	/* Parse the reference-to-subobject expression. */
+	subobject_expression = cp_parser_assignment_expression (parser);
+	parens.require_close (parser);
+	postfix_expression = cp_build_enclosing_cast (
+	  builtin_location,
+	  member_expression,
+	  subobject_expression,
+	  tf_warning_or_error
+        );
+	break;
+      }
+
     default:
     default_:
       {

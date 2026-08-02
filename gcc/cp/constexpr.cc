@@ -6656,6 +6656,63 @@ cxx_eval_bit_cast (const constexpr_ctx *ctx, tree t, bool *non_constant_p,
 }
 
 /* Subroutine of cxx_eval_constant_expression.
+   Attempt to evaluate a ENCLOSING_CAST_EXPR.  */
+
+static tree
+cxx_eval_enclosing_cast (const constexpr_ctx *ctx, tree t, bool *non_constant_p,
+			 bool *overflow_p, tree *jump_target)
+{
+  tree memptr = cxx_eval_constant_expression (ctx, TREE_OPERAND(t, 0), vc_prvalue,
+					      non_constant_p, overflow_p,
+					      jump_target);
+  tree subobj = cxx_eval_constant_expression (ctx, TREE_OPERAND(t, 1), vc_glvalue,
+					      non_constant_p, overflow_p,
+					      jump_target);
+  if (*non_constant_p)
+    return t;
+  if (*jump_target)
+    return NULL_TREE;
+
+  if (TREE_CODE(memptr) == INTEGER_CST)
+    {
+      gcc_assert (tree_fits_shwi_p (memptr) && tree_to_shwi (memptr) == -1);
+      if (!ctx->quiet)
+	error_at (EXPR_LOCATION (t),
+		  "%qs is not a constant expression because first argument is nullptr",
+		  "__builtin_enclosing_cast");
+      *non_constant_p = true;
+      return t;
+    }
+  gcc_assert(TREE_CODE(memptr) == PTRMEM_CST);
+
+  if (TREE_CODE(subobj) == VAR_DECL)
+    {
+      if (!ctx->quiet)
+	error_at (EXPR_LOCATION (t),
+		  "%qs is not a constant expression because second argument is reference to variable, not class subobject",
+		  "__builtin_enclosing_cast");
+      *non_constant_p = true;
+      return t;
+    }
+
+  gcc_assert(TREE_CODE(subobj) == COMPONENT_REF);
+
+  tree memptr_decl = PTRMEM_CST_MEMBER(memptr);
+  tree subobj_decl = TREE_OPERAND(subobj, 1);
+  if (memptr_decl != subobj_decl)
+    {
+      if (!ctx->quiet)
+	error_at (EXPR_LOCATION (t),
+		  "%qs is not a constant expression because arguments do not refer to same field. %qD != %qD",
+		  "__builtin_enclosing_cast", memptr_decl, subobj_decl);
+      *non_constant_p = true;
+      return t;
+    }
+
+  return TREE_OPERAND(subobj, 0);
+}
+
+/* Subroutine of cxx_eval_constant_expression.
    Evaluate a short-circuited logical expression T in the context
    of a given constexpr CALL.  BAILOUT_VALUE is the value for
    early return.  CONTINUE_VALUE is used here purely for
@@ -10660,6 +10717,10 @@ cxx_eval_constant_expression (const constexpr_ctx *ctx, tree t,
       r = cxx_eval_bit_cast (ctx, t, non_constant_p, overflow_p, jump_target);
       break;
 
+    case ENCLOSING_CAST_EXPR:
+      r = cxx_eval_enclosing_cast (ctx, t, non_constant_p, overflow_p, jump_target);
+      break;
+
     case OMP_PARALLEL:
     case OMP_TASK:
     case OMP_FOR:
@@ -13132,6 +13193,13 @@ potential_constant_expression_1 (tree t, bool want_rval, bool strict, bool now,
 	    return false;
 	return true;
       }
+
+    case ENCLOSING_CAST_EXPR:
+      if (!RECUR (TREE_OPERAND (t, 0), any))
+	return false;
+      if (!RECUR (TREE_OPERAND (t, 1), any))
+	return false;
+      return true;
 
     default:
       if (objc_non_constant_expr_p (t))

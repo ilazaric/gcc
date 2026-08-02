@@ -14955,6 +14955,50 @@ cp_build_vec_convert (tree arg, location_t loc, tree type,
   return build_call_expr_internal_loc (loc, IFN_VEC_CONVERT, type, 1, arg);
 }
 
+/* Finish __builtin_enclosing_cast (arg1, arg2).  */
+
+tree
+cp_build_enclosing_cast (location_t loc, tree memptr, tree subobj,
+			 tsubst_flags_t complain)
+{
+  if (error_operand_p (memptr))
+    return error_mark_node;
+  if (error_operand_p (subobj))
+    return error_mark_node;
+
+  tree type = NULL_TREE;
+
+  if (!type_dependent_expression_p (memptr))
+    {
+      if (!TYPE_PTRDATAMEM_P(TREE_TYPE(memptr)))
+	{
+	  if (complain & tf_error)
+	    error_at (EXPR_LOCATION(memptr), "%qs argument %qE is not a pointer to data member",
+		      "__builtin_enclosing_cast", memptr);
+	  return error_mark_node;
+	}
+      type = TYPE_PTRMEM_CLASS_TYPE(TREE_TYPE(memptr));
+    }
+
+  if (!type_dependent_expression_p (subobj))
+    {
+      if ((lvalue_kind(subobj) & (clk_ordinary | clk_rvalueref)) == 0)
+	{
+	  if (complain & tf_error)
+	    error_at (EXPR_LOCATION(subobj), "%qs argument %qE is not a reference",
+		      "__builtin_enclosing_cast", subobj);
+	  return error_mark_node;
+	}
+      if (type != NULL_TREE)
+	type = cp_build_qualified_type(type, cp_type_quals(TREE_TYPE(subobj)));
+    }
+  else type = NULL_TREE;
+  
+  tree ret = build_min(ENCLOSING_CAST_EXPR, type, memptr, subobj);
+  SET_EXPR_LOCATION (ret, loc);
+  return ret;
+}
+
 /* Finish __builtin_bit_cast (type, arg).  */
 
 tree

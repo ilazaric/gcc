@@ -1,0 +1,61 @@
+#ifndef _GLIBCXX_ENCLOSING_CAST
+#define _GLIBCXX_ENCLOSING_CAST 1
+
+#ifdef _GLIBCXX_SYSHDR
+#pragma GCC system_header
+#endif
+
+#define __glibcxx_want_enclosing_cast
+#include <bits/version.h>
+
+#include <type_traits>
+#include <concepts>
+
+#ifdef __cpp_lib_enclosing_cast // C++ >= 26
+
+namespace std _GLIBCXX_VISIBILITY(default)
+{
+_GLIBCXX_BEGIN_NAMESPACE_VERSION
+
+  template<typename>
+    struct __member_types
+    {
+      using __e = void;
+      using __u = void;
+    };
+ 
+  template<typename _Enc, typename _Und>
+    struct __member_types<_Und _Enc::*>
+    {
+      using __e = _Enc;
+      using __u = _Und;
+    };
+
+  template<typename _Tp>
+    concept __enclosing_memptr = is_member_object_pointer_v<_Tp>;
+
+  template<typename _Tp, auto _Mp,
+	   typename _E = __member_types<decltype(_Mp)>::__e,
+	   typename _U = __member_types<decltype(_Mp)>::__u>
+    concept __enclosing_compatible
+      = is_standard_layout_v<_E> && same_as<remove_cvref_t<_Tp>, remove_cvref_t<_U>>;
+
+  template<auto _Mp, typename _Tp, typename _E = __member_types<decltype(_Mp)>::__e>
+    using __enclosing_return
+      = conditional_t<
+	is_lvalue_reference_v<_Tp>,
+	__copy_cv<remove_reference_t<_Tp>, _E>&,
+	__copy_cv<_Tp, _E>&&>;
+ 
+  template<__enclosing_memptr auto _Mp, __enclosing_compatible<_Mp> _Tp> 
+    requires (_Mp != nullptr)
+    [[nodiscard, gnu::always_inline]]
+    constexpr __enclosing_return<_Mp, _Tp> enclosing_cast(_Tp&& __ref)
+    { return __builtin_enclosing_cast(_Mp, static_cast<_Tp&&>(__ref)); }
+ 
+_GLIBCXX_END_NAMESPACE_VERSION
+} // namespace std
+
+#endif // __cpp_lib_enclosing_cast
+
+#endif /* _GLIBCXX_ENCLOSING_CAST */
