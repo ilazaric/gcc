@@ -55,7 +55,8 @@ std_freestanding = \
 	${std_srcdir}/typeindex \
 	${std_srcdir}/utility \
 	${std_srcdir}/variant \
-	${std_srcdir}/version
+	${std_srcdir}/version \
+	${std_srcdir}/enclosing_cast
 
 if !GLIBCXX_HOSTED
 std_headers = ${std_freestanding}

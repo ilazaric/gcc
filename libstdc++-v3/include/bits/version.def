@@ -910,6 +910,15 @@ ftms = {
 };
 
 ftms = {
+  name = enclosing_cast;
+  values = {
+    v = 202306;
+    cxxmin = 26;
+    extra_cond = "__has_builtin(__builtin_enclosing_cast)";
+  };
+};
+
+ftms = {
   name = bitops;
   // 202606 P3793R2 Better shifting
   // 202607 P3104R6 Bit permutations
