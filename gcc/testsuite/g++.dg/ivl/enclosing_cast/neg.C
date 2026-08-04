@@ -17,8 +17,8 @@ constexpr auto&& ref2 = __builtin_enclosing_cast(123.456, s.x); // { dg-error "'
 
 constexpr auto&& ref3 = __builtin_enclosing_cast(&S::x, 123); // { dg-error "'__builtin_enclosing_cast' argument '123' is not a reference" }
 
-constexpr auto&& ref4 = __builtin_enclosing_cast(&S::y, s.x); // { dg-error "'__builtin_enclosing_cast' is not a constant expression because arguments do not refer to same field. 'S::y' != 'S::x'" }
+constexpr auto&& ref4 = __builtin_enclosing_cast(&S::y, s.x); // { dg-error "'__builtin_enclosing_cast' is not a constant expression because arguments do not refer to same field" }
 
 constexpr int z = 123;
 
-constexpr auto&& ref5 = __builtin_enclosing_cast(&S::x, z); // { dg-error "'__builtin_enclosing_cast' is not a constant expression because second argument is reference to variable, not class subobject" }
+constexpr auto&& ref5 = __builtin_enclosing_cast(&S::x, z); // { dg-error "'__builtin_enclosing_cast' is not a constant expression because second argument is not a sub-object of corresponding class" }
