@@ -96,7 +96,7 @@ struct full_state {
 
 [[gnu::noinline]]
 constexpr full_state generate_state(int arg) {
-  if (arg < 0) return {};
+  if (arg > 1000000) return {};
   full_state state;
   state.persons.emplace_back("john doe", "london", "jd");
   state.persons.emplace_back("jane doe", "paris", "dj");
