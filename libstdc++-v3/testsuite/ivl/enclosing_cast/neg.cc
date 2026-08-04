@@ -27,8 +27,8 @@ constexpr auto&& b = std::enclosing_cast<&T::y>(T{}.x); // { dg-error "no matchi
 constexpr auto&& c = std::enclosing_cast<123>(456); // { dg-error "no matching function for call to 'enclosing_cast<123>.int.'" }
                                                     // { dg-error "note: 'int' is not a member object pointer" "" { target *-*-* } 0 }
 
-constexpr auto&& d = std::enclosing_cast<(float T::*)nullptr>(T{}.y); // { dg-error "no matching function for call to 'enclosing_cast<-1>.float.'" }
-                                                                      // { dg-error "note: the expression '_Mp != nullptr .with _Mp = -1.' evaluated to 'false'" "" { target *-*-* } 0 }
+constexpr auto&& d = std::enclosing_cast<static_cast<float T::*>(nullptr)>(T{}.y); // { dg-error "no matching function for call to 'enclosing_cast<-1>.float.'" }
+                                                                                   // { dg-error "note: the expression '_Mp != nullptr .with _Mp = -1.' evaluated to 'false'" "" { target *-*-* } 0 }
 
 constexpr auto&& e = std::enclosing_cast<&U::x>(U{}.y); // { dg-error "in 'constexpr' expansion of 'std::enclosing_cast<&U::x, int>.U...U::y.'" }
                                                         // { dg-error "'__builtin_enclosing_cast' is not a constant expression because arguments do not refer to same field" "" { target *-*-* } 0 }
