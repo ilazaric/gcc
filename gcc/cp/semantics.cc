@@ -14966,7 +14966,9 @@ cp_build_enclosing_cast (location_t loc, tree memptr, tree subobj,
   if (error_operand_p (subobj))
     return error_mark_node;
 
-  tree type = NULL_TREE;
+  tree enclosing_type = NULL_TREE;
+  tree member_type = NULL_TREE;
+  tree subobj_type = NULL_TREE;
 
   if (!type_dependent_expression_p (memptr))
     {
@@ -14977,7 +14979,15 @@ cp_build_enclosing_cast (location_t loc, tree memptr, tree subobj,
 		      "__builtin_enclosing_cast", memptr);
 	  return error_mark_node;
 	}
-      type = TYPE_PTRMEM_CLASS_TYPE(TREE_TYPE(memptr));
+      enclosing_type = TYPE_PTRMEM_CLASS_TYPE(TREE_TYPE(memptr));
+      member_type = TYPE_PTRMEM_POINTED_TO_TYPE(TREE_TYPE(memptr));
+      if (same_type_ignoring_top_level_qualifiers_p(enclosing_type, member_type))
+	{
+	  if (complain & tf_error)
+	    error_at (EXPR_LOCATION(memptr), "%qs argument %qE is a self-referential pointer to data member (member and class are same type)",
+		      "__builtin_enclosing_cast", memptr);
+	  return error_mark_node;
+	}
     }
 
   if (!type_dependent_expression_p (subobj))
@@ -14989,11 +14999,20 @@ cp_build_enclosing_cast (location_t loc, tree memptr, tree subobj,
 		      "__builtin_enclosing_cast", subobj);
 	  return error_mark_node;
 	}
-      if (type != NULL_TREE)
-	type = cp_build_qualified_type(type, cp_type_quals(TREE_TYPE(subobj)));
+      subobj_type = TREE_TYPE(subobj);
     }
-  else type = NULL_TREE;
-  
+
+  if (member_type && subobj_type && !same_type_ignoring_top_level_qualifiers_p(member_type, subobj_type))
+    {
+      if (complain & tf_error)
+	error_at (EXPR_LOCATION(subobj), "%qs pointed-to-type %qT does not match type %qT, modulo qualifiers",
+		  "__builtin_enclosing_cast", member_type, subobj_type);
+      return error_mark_node;
+    }
+
+  tree type = NULL_TREE;
+  if (enclosing_type && subobj_type)
+    type = cp_build_qualified_type(enclosing_type, cp_type_quals(subobj_type));
   tree ret = build_min(ENCLOSING_CAST_EXPR, type, memptr, subobj);
   SET_EXPR_LOCATION (ret, loc);
   return ret;
