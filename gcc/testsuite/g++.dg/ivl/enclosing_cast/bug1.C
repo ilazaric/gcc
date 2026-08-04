@@ -6,6 +6,7 @@ struct T : S {};
 
 constexpr T t{};
 
-// constexpr auto mp = (int T::*)&T::x;
-
 constexpr auto&& ref = __builtin_enclosing_cast(static_cast<int T::*>(&T::x), t.x);
+
+static_assert(&ref == &t);
+
