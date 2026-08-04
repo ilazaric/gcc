@@ -6659,20 +6659,24 @@ static tree
 cxx_eval_enclosing_cast (const constexpr_ctx *ctx, tree t, bool *non_constant_p,
 			 bool *overflow_p, tree *jump_target)
 {
-  tree memptr = cxx_eval_constant_expression (ctx, TREE_OPERAND(t, 0), vc_prvalue,
-					      non_constant_p, overflow_p,
-					      jump_target);
-  tree subobj = cxx_eval_constant_expression (ctx, TREE_OPERAND(t, 1), vc_glvalue,
-					      non_constant_p, overflow_p,
-					      jump_target);
+  tree memptr = TREE_OPERAND(t, 0);
+  tree subobj = TREE_OPERAND(t, 1);
+  memptr = cxx_eval_constant_expression (ctx, memptr, vc_prvalue,
+					 non_constant_p, overflow_p,
+					 jump_target);
+  subobj = cxx_eval_constant_expression (ctx, subobj, vc_glvalue,
+					 non_constant_p, overflow_p,
+					 jump_target);
+
   if (*non_constant_p)
     return t;
   if (*jump_target)
     return NULL_TREE;
 
-  if (TREE_CODE(memptr) == INTEGER_CST)
+  tree enclosing_type = TYPE_PTRMEM_CLASS_TYPE(TREE_TYPE(memptr));
+
+  if (TREE_CODE(memptr) == INTEGER_CST && tree_fits_shwi_p (memptr) && tree_to_shwi (memptr) == -1)
     {
-      gcc_assert (tree_fits_shwi_p (memptr) && tree_to_shwi (memptr) == -1);
       if (!ctx->quiet)
 	error_at (EXPR_LOCATION (t),
 		  "%qs is not a constant expression because first argument is nullptr",
@@ -6680,33 +6684,47 @@ cxx_eval_enclosing_cast (const constexpr_ctx *ctx, tree t, bool *non_constant_p,
       *non_constant_p = true;
       return t;
     }
-  gcc_assert(TREE_CODE(memptr) == PTRMEM_CST);
+  gcc_assert(TREE_CODE(memptr) == PTRMEM_CST || TREE_CODE(memptr) == INTEGER_CST);
 
-  if (TREE_CODE(subobj) == VAR_DECL)
+  tree memoff = memptr;
+  if (TREE_CODE(memoff) == PTRMEM_CST)
+    memoff = cplus_expand_constant (memoff);
+  gcc_assert(TREE_CODE(memoff) == INTEGER_CST);
+
+  tree obj = subobj;
+  HOST_WIDE_INT offset = 0;
+  while (TREE_CODE(obj) == COMPONENT_REF &&
+	 !same_type_ignoring_top_level_qualifiers_p(TREE_TYPE(obj), enclosing_type))
+    {
+      offset += int_byte_position(TREE_OPERAND(obj, 1));
+      obj = TREE_OPERAND(obj, 0);
+    }
+
+  if (!same_type_ignoring_top_level_qualifiers_p(TREE_TYPE(obj), enclosing_type))
     {
       if (!ctx->quiet)
 	error_at (EXPR_LOCATION (t),
-		  "%qs is not a constant expression because second argument is reference to variable, not class subobject",
+		  "%qs is not a constant expression because second argument is not a sub-object of corresponding class",
 		  "__builtin_enclosing_cast");
       *non_constant_p = true;
       return t;
     }
 
-  gcc_assert(TREE_CODE(subobj) == COMPONENT_REF);
-
-  tree memptr_decl = PTRMEM_CST_MEMBER(memptr);
-  tree subobj_decl = TREE_OPERAND(subobj, 1);
-  if (memptr_decl != subobj_decl)
+  if (offset != tree_to_shwi (memoff))
     {
       if (!ctx->quiet)
-	error_at (EXPR_LOCATION (t),
-		  "%qs is not a constant expression because arguments do not refer to same field. %qD != %qD",
-		  "__builtin_enclosing_cast", memptr_decl, subobj_decl);
+	{
+	  error_at (EXPR_LOCATION (t),
+		    "%qs is not a constant expression because arguments do not refer to same field",
+		    "__builtin_enclosing_cast");
+	  inform(UNKNOWN_LOCATION, "member-to-pointer is offset by %lld", tree_to_shwi (memoff));
+	  inform(UNKNOWN_LOCATION, "sub-object is offset by %lld", offset);
+	}
       *non_constant_p = true;
       return t;
     }
 
-  return TREE_OPERAND(subobj, 0);
+  return obj;
 }
 
 /* Subroutine of cxx_eval_constant_expression.
