@@ -348,29 +348,6 @@ retain_decl (tree decl, copy_body_data *)
   return decl;
 }
 
-/* Lookup a name in std::, or inject it.  */
-
-static tree
-lookup_std_type (tree name_id)
-{
-  tree res_type = lookup_qualified_name
-    (std_node, name_id, LOOK_want::TYPE | LOOK_want::HIDDEN_FRIEND);
-
-  if (TREE_CODE (res_type) == TYPE_DECL)
-    res_type = TREE_TYPE (res_type);
-  else
-    {
-      push_nested_namespace (std_node);
-      res_type = make_class_type (RECORD_TYPE);
-      create_implicit_typedef (name_id, res_type);
-      DECL_SOURCE_LOCATION (TYPE_NAME (res_type)) = BUILTINS_LOCATION;
-      DECL_CONTEXT (TYPE_NAME (res_type)) = current_namespace;
-      pushdecl_namespace_level (TYPE_NAME (res_type), /*hidden*/true);
-      pop_nested_namespace (std_node);
-    }
-  return res_type;
-}
-
 /* Get constract_assertion_kind of the specified contract. Used when building
   contract_violation object.  */
 
@@ -2687,16 +2664,11 @@ get_contracts_source_location_impl_type (tree context = NULL_TREE)
      return contracts_source_location_impl_type;
 
   /* First see if we have a declaration that we can use.  */
-  tree contracts_source_location_type
-    = lookup_std_type (get_identifier ("source_location"));
-
-  if (contracts_source_location_type
-      && contracts_source_location_type != error_mark_node
-      && TYPE_FIELDS (contracts_source_location_type))
-    {
-      contracts_source_location_impl_type = get_source_location_impl_type ();
-      return contracts_source_location_impl_type;
-    }
+  if (tree srcloc = lookup_qualified_name (std_node, get_identifier ("source_location"));
+      srcloc && srcloc != error_mark_node && TREE_CODE(srcloc) == TYPE_DECL) {
+    contracts_source_location_impl_type = get_source_location_impl_type ();
+    return contracts_source_location_impl_type;
+  }
 
   /* We do not, so build the __impl layout equivalent type, which must
      match <source_location>:
