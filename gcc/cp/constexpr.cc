@@ -1162,6 +1162,19 @@ struct constexpr_call_hasher : ggc_ptr_hash<constexpr_call>
   static bool equal (constexpr_call *, constexpr_call *);
 };
 
+static unsigned long long constexpr_ops_count_max = 0;
+
+[[gnu::destructor]]
+static void log_constexpr_ops_count_max() {
+  if (getenv("IVL_GCC_DUMP_CONSTEXPR_OPS_COUNT")) {
+    auto constexpr_ops_count = (long long)constexpr_ops_count_max;
+    if (constexpr_ops_count < 0)
+      printf("IVL: constexpr_ops_count: overflow\n");
+    else 
+      printf("IVL: constexpr_ops_count: %lld\n", constexpr_ops_count);
+  }
+}
+
 enum constexpr_switch_state {
   /* Used when processing a switch for the first time by cxx_eval_switch_expr
      and default: label for that switch has not been seen yet.  */
@@ -1239,6 +1252,12 @@ public:
       consteval_block (NULL_TREE), heap_dealloc_count (0),
       uncaught_exceptions (0), contract_statement (NULL_TREE),
       contract_condition_non_const (false), state_dependent (false) {}
+
+  /* Destructor.  */
+  ~constexpr_global_ctx () {
+    if (constexpr_ops_count_max < (unsigned long long)constexpr_ops_count)
+      constexpr_ops_count_max = (unsigned long long)constexpr_ops_count;
+  }
 
   bool is_outside_lifetime (tree t)
   {
