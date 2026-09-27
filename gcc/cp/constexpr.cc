@@ -43,6 +43,24 @@ along with GCC; see the file COPYING3.  If not see
 #include "toplev.h"
 #include "contracts.h"
 
+static bool ivl_bad(tree t) {
+  if (t == NULL_TREE || t == error_mark_node) return false;
+  if (TREE_CODE(t) == TARGET_EXPR)
+    return ivl_bad(TARGET_EXPR_INITIAL(t));
+  if (getenv("IVL_VERBOSE")) warning(0, "ivl_bad: %C %E", TREE_CODE(t), t);
+  if (TREE_CODE(t) == CALL_EXPR) {
+    auto c = get_callee_fndecl(t);
+    if (c != NULL_TREE &&
+	c != error_mark_node &&
+	LAMBDA_FUNCTION_P(c) &&
+	call_expr_nargs(t) >= 1 &&
+	TREE_CODE(CALL_EXPR_ARG(t, 0)) == INTEGER_CST) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static bool verify_constant (tree, bool, bool *, bool *);
 #define VERIFY_CONSTANT(X)						\
 do {									\
@@ -1255,6 +1273,10 @@ public:
 
   /* Destructor.  */
   ~constexpr_global_ctx () {
+    if (getenv("IVL_WARN") && constexpr_ops_count > 1000000) {
+      warning(0, "IVL: dtor: %lld", constexpr_ops_count);
+      if (getenv("IVL_DIE")) gcc_assert(false);
+    }
     if (constexpr_ops_count_max < (unsigned long long)constexpr_ops_count)
       constexpr_ops_count_max = (unsigned long long)constexpr_ops_count;
   }
@@ -11605,6 +11627,7 @@ cxx_eval_outermost_constant_expr (tree t, bool allow_non_constant,
 				  bool constexpr_dtor = false,
 				  tree object = NULL_TREE)
 {
+  if (ivl_bad(t)) return t;
   auto_timevar time (TV_CONSTEXPR);
 
   bool non_constant_p = false;
@@ -12112,6 +12135,8 @@ tree
 maybe_constant_value (tree t, tree decl /* = NULL_TREE */,
 		      mce_value manifestly_const_eval /* = mce_unknown */)
 {
+  if (ivl_bad(t)) return t;
+
   tree orig_t = t;
   tree r;
 
@@ -12357,6 +12382,8 @@ static tree
 maybe_constant_init_1 (tree t, tree decl, bool allow_non_constant,
 		       mce_value manifestly_const_eval)
 {
+  if (ivl_bad(t)) return t;
+
   if (!t)
     return t;
   if (TREE_CODE (t) == EXPR_STMT)
