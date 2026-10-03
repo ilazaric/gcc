@@ -46,7 +46,11 @@ typedef __builtin_va_list __gnuc_va_list;
 
 #if (defined __STDC_VERSION__ && __STDC_VERSION__ > 201710L) \
     || __cplusplus >= 202400L
+#if __has_builtin(__builtin_c23_va_start)
 #define va_start(...) __builtin_c23_va_start(__VA_ARGS__)
+#else
+#define va_start(v,l)	__builtin_va_start(v,l)
+#endif
 #else
 #define va_start(v,l)	__builtin_va_start(v,l)
 #endif
