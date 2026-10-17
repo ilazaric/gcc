@@ -1141,6 +1141,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
       }
 #endif // containers_ranges
 
+#ifndef _IVL_MURDER_VECTOR_BOOL_SPECIALIZATION
   // vector<bool>
   template<typename _Alloc>
     _GLIBCXX20_CONSTEXPR
@@ -1306,6 +1307,7 @@ _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 	{ return false; }
     }
 #endif
+#endif // !_IVL_MURDER_VECTOR_BOOL_SPECIALIZATION
 
 _GLIBCXX_END_NAMESPACE_CONTAINER
 _GLIBCXX_END_NAMESPACE_VERSION
@@ -1317,6 +1319,7 @@ namespace std _GLIBCXX_VISIBILITY(default)
 {
 _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
+#ifndef _IVL_MURDER_VECTOR_BOOL_SPECIALIZATION
   template<typename _Alloc>
     size_t
     hash<_GLIBCXX_STD_C::vector<bool, _Alloc>>::
@@ -1346,6 +1349,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
       return __hash;
     }
+#endif // !_IVL_MURDER_VECTOR_BOOL_SPECIALIZATION
 
 _GLIBCXX_END_NAMESPACE_VERSION
 } // namespace std
