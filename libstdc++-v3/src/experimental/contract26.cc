@@ -76,7 +76,7 @@ void __handle_contract_violation(const std::contracts::contract_violation &viola
   delimiter = ", ";
 
   std::cerr << delimiter << "mode:";
-  switch (violation.mode())
+  switch (violation.detection_mode())
   {
     case std::contracts::detection_mode::predicate_false:
       std::cerr << " predicate_false";
@@ -89,7 +89,7 @@ void __handle_contract_violation(const std::contracts::contract_violation &viola
   }
   delimiter = ", ";
 
-  if (violation.mode() == std::contracts::detection_mode::evaluation_exception)
+  if (violation.detection_mode() == std::contracts::detection_mode::evaluation_exception)
     {
       /* Based on the impl. in vterminate.cc.  */
       std::type_info *t = __cxxabiv1::__cxa_current_exception_type();
