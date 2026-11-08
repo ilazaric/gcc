@@ -1127,9 +1127,7 @@ ptr_parm_has_nonarg_uses (cgraph_node *node, function *fun, tree parm,
 		rhs = TREE_OPERAND (rhs, 0);
 	      if (TREE_CODE (rhs) == MEM_REF
 		  && TREE_OPERAND (rhs, 0) == name
-		  && integer_zerop (TREE_OPERAND (rhs, 1))
-		  && types_compatible_p (TREE_TYPE (rhs),
-					 TREE_TYPE (TREE_TYPE (name))))
+		  && integer_zerop (TREE_OPERAND (rhs, 1)))
 		uses_ok++;
 	    }
 	}
