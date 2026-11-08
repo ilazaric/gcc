@@ -108,7 +108,7 @@ gimple_infer_range::check_assume_func (gcall *call)
       if (gimple_range_ssa_p (op) && value_range::supports_type_p (type))
 	{
 	  tree default_def = ssa_default_def (fun, arg);
-	  if (!default_def || type != TREE_TYPE (default_def))
+	  if (!default_def || type != TYPE_MAIN_VARIANT (TREE_TYPE (default_def)))
 	    continue;
 	  // Query the global range of the default def in the assume function.
 	  value_range assume_range (type);
